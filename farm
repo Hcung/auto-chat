@@ -7,28 +7,29 @@ getgenv().Config = {
 		["Auto Replay"] = true
 	},
 	["Joiner Cooldown"] = 5,
+	["Assassin Contract Joiner"] = {
+		["Tier Required"] = 10
+	},
 	["Performance"] = {
 		["Delete Map"] = true,
 		["Boost FPS"] = true
 	},
 	["Macros"] = {
-		["Macro Retry Limit"] = 0,
+		["Macro"] = "walk",
 		["Ignore Macro Timing"] = true,
+		["Play"] = true,
 		["No Ignore Sell Timing"] = true,
-		["Macro"] = "farm exp"
+		["Macro Retry Limit"] = 0
+	},
+	["Modified"] = {
+		["Infinite Range"] = {
+			["Type"] = "Nearest Enemy from Base"
+		}
 	},
 	["Webhook"] = {
 		["Game Finished"] = true,
 		["Sent with Unit Stat"] = true,
 		["URL"] = "https://discord.com/api/webhooks/1278245966897745992/diUEy1lNakjYBJb1_SNhgeVofXb_kOBOewVWEgUe4UlqCD9RyZtPMVUOeiS9Rn0A99RY"
-	},
-	["World Joiner"] = {
-		["Act"] = "Act 1",
-		["Enable"] = true,
-		["World"] = "Planet Greenie"
-	},
-	["Failsafe"] = {
-		["Teleport Lobby if Player"] = true
 	},
 	["Secure"] = {
 		["Walk Around"] = true
@@ -37,18 +38,23 @@ getgenv().Config = {
 		["Auto Claim Quest"] = true,
 		["Auto Accept Daily Mission"] = true
 	},
+	["World Joiner"] = {
+		["Act"] = "Act 1",
+		["Enable"] = true,
+		["World"] = "Planet Greenie"
+	},
 	["Gameplay"] = {
 		["Auto Leave"] = {
 			["Wave"] = 1
 		},
-		["Auto Vote Start"] = true,
+		["Auto Sell"] = {
+			["Wave"] = 1
+		},
 		["Auto Skip Wave"] = true,
 		["Auto Sell Farm"] = {
 			["Wave"] = 1
 		},
-		["Auto Sell"] = {
-			["Wave"] = 1
-		}
+		["Auto Vote Start"] = true
 	}
 }
 getgenv().Key = "kc353528908092418d4b1d65"
