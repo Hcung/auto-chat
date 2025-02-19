@@ -113,35 +113,3 @@ task.spawn(function()
     end)
     if not success then end
 end)
-
-task.spawn(function()
-    local success, err = pcall(function()
-        while true do
-            for _, player in ipairs(Players:GetPlayers()) do
-                if player ~= LocalPlayer and not LocalPlayer:IsFriendsWith(player.UserId) then
-                    LocalPlayer:RequestFriendship(player)
-                end
-            end
-            wait(10)
-        end
-    end)
-    if not success then
-        warn("AutoSendFriendRequest failed:", err)
-    end
-end)
-
-task.spawn(function()
-    local success, err = pcall(function()
-        while true do
-            for _, player in ipairs(Players:GetPlayers()) do
-                if player ~= LocalPlayer and player:IsFriendRequestSent() then
-                    LocalPlayer:AcceptFriendRequest(player)
-                end
-            end
-            wait(10)
-        end
-    end)
-    if not success then
-        warn("AutoAcceptFriendRequests failed:", err)
-    end
-end)
