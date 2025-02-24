@@ -1,49 +1,18 @@
 local player = game.Players.LocalPlayer
 local character = player.Character or player.CharacterAdded:Wait()
-local humanoidRootPart = character:FindFirstChild("HumanoidRootPart")
-local humanoid = character:FindFirstChildOfClass("Humanoid")
+local hrp = character:FindFirstChild("HumanoidRootPart")
 
--- Tọa độ Cổng vào Minigame (đứng trước cửa)
-local gatePosition = Vector3.new(185.9095, 22.4615, 201.2066)
+if hrp then
+    -- Tọa độ trước cổng minigame
+    hrp.CFrame = CFrame.new(184.103, 22.25, 140.711)
+    
+    -- Đợi 1 giây cho nhân vật ổn định
+    wait(1)
 
--- Tọa độ Chính xác trong Minigame (khi đã vào trong)
-local minigamePosition = Vector3.new(-525.6428, 108.5723, 1401.4472)
-
--- Kiểm tra game đã load chưa
-local function waitForGameLoad()
-    while game:GetService("Players").LocalPlayer == nil or game:GetService("Workspace") == nil do
-        wait(1)
-    end
-    wait(5) -- Chờ thêm 5 giây cho chắc chắn
-end
-
--- Hàm Teleport nhân vật đến cổng vào
-local function teleportToGate()
-    if humanoidRootPart then
-        humanoidRootPart.CFrame = CFrame.new(gatePosition)
-        wait(1) -- Chờ 1 giây trước khi chạy
-    end
-end
-
--- Hàm tự động chạy vào minigame
-local function autoWalkIntoMinigame()
+    -- Di chuyển nhân vật về phía trước để vào cổng minigame
+    local humanoid = character:FindFirstChild("Humanoid")
     if humanoid then
-        humanoid:Move(Vector3.new(0, 0, -1), true) -- Di chuyển về phía trước
-        wait(3) -- Chạy trong 3 giây (có thể điều chỉnh nếu chưa đủ)
-        humanoid:Move(Vector3.new(0, 0, 0), true) -- Dừng lại
+        humanoid.WalkSpeed = 50 -- Tăng tốc chạy để vào nhanh hơn
+        hrp.CFrame = hrp.CFrame * CFrame.new(0, 0, -5) -- Tiến về phía trước
     end
 end
-
--- Hàm kiểm tra đã vào minigame chưa
-local function checkIfInsideMinigame()
-    while humanoidRootPart and (humanoidRootPart.Position - minigamePosition).magnitude > 10 do
-        wait(1)
-    end
-    print("✅ Đã vào Minigame thành công!")
-end
-
--- Thực hiện Auto vào Minigame
-waitForGameLoad()
-teleportToGate()
-autoWalkIntoMinigame()
-checkIfInsideMinigame()
