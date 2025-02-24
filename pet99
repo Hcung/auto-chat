@@ -1,0 +1,64 @@
+local player = game.Players.LocalPlayer
+local character = player.Character or player.CharacterAdded:Wait()
+local humanoidRootPart = character:FindFirstChild("HumanoidRootPart")
+local UserInputService = game:GetService("UserInputService")
+
+-- Danh sách tọa độ các chậu cây trong Flower Garden Map 54
+local plantPositions = {
+    Vector3.new(100, 5, 200),  -- Chậu 1
+    Vector3.new(120, 5, 220),  -- Chậu 2
+    Vector3.new(140, 5, 240),  -- Chậu 3
+    Vector3.new(160, 5, 260),  -- Chậu 4
+    Vector3.new(180, 5, 280)   -- Chậu 5
+}
+
+-- Tọa độ cổng vào Minigame (đặt đúng vị trí nếu cần)
+local minigamePortal = Vector3.new(200, 10, 300)
+
+-- Hàm dịch chuyển nhân vật
+local function teleportTo(position)
+    if humanoidRootPart then
+        humanoidRootPart.CFrame = CFrame.new(position)
+        wait(1)  -- Chờ 1 giây trước khi làm hành động tiếp theo
+    end
+end
+
+-- Hàm tưới nước (giả sử có RemoteEvent tên "WaterPlant")
+local function waterPlant()
+    local remoteEvent = game:GetService("ReplicatedStorage"):FindFirstChild("WaterPlantEvent")
+    if remoteEvent then
+        remoteEvent:FireServer()
+    else
+        warn("Không tìm thấy sự kiện tưới nước!")
+    end
+end
+
+-- Hàm vào Minigame (giả sử có sự kiện RemoteEvent tên "JoinMinigame")
+local function enterMinigame()
+    local remoteEvent = game:GetService("ReplicatedStorage"):FindFirstChild("JoinMinigameEvent")
+    if remoteEvent then
+        remoteEvent:FireServer()
+        print("Đang vào Minigame...")
+    else
+        print("Không tìm thấy sự kiện Minigame, thử dịch chuyển thủ công...")
+        teleportTo(minigamePortal)
+    end
+end
+
+-- Lắng nghe sự kiện bấm phím "M" để vào Minigame
+UserInputService.InputBegan:Connect(function(input, gameProcessed)
+    if input.KeyCode == Enum.KeyCode.M then
+        enterMinigame()
+    end
+end)
+
+-- Bắt đầu quá trình tự động
+print("Bắt đầu tưới cây...")
+
+for _, position in pairs(plantPositions) do
+    teleportTo(position)
+    waterPlant()
+    wait(2)  -- Chờ 2 giây trước khi chuyển sang chậu tiếp theo
+end
+
+print("Hoàn thành tưới cây! Bấm 'M' để vào Minigame.")
