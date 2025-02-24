@@ -13,55 +13,40 @@ local player = game.Players.LocalPlayer
 local character = player.Character or player.CharacterAdded:Wait()
 local humanoidRootPart = character:FindFirstChild("HumanoidRootPart")
 
--- Tìm UI của game (có thể thay đổi nếu game khác)
-local UserInputService = game:GetService("UserInputService")
+-- Tìm RemoteEvent (nếu có)
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
-
-function pressE()
-    UserInputService.InputBegan:Fire(Enum.KeyCode.E) -- Gửi lệnh mở menu
-    wait(0.5)
-end
-
-function selectDiamondSeed()
-    local tool = player.Backpack:FindFirstChild("Diamond Seed")
-    if tool then
-        player.Character.Humanoid:EquipTool(tool) -- Chọn hạt giống
-    end
-    wait(0.5)
-end
-
-function pressConfirm()
-    local confirmButton = game.Players.LocalPlayer.PlayerGui:FindFirstChild("ConfirmButton")
-    if confirmButton then
-        confirmButton:Fire() -- Gửi sự kiện nhấn nút Confirm
-    end
-    wait(0.5)
-end
-
-function pressYes()
-    local yesButton = game.Players.LocalPlayer.PlayerGui:FindFirstChild("YesButton")
-    if yesButton then
-        yesButton:Fire() -- Gửi sự kiện nhấn nút Yes
-    end
-    wait(0.5)
-end
+local plantEvent = ReplicatedStorage:FindFirstChild("PlantSeedEvent") -- Thay bằng tên đúng nếu khác
 
 function teleportAndPlant()
     for _, pos in ipairs(teleportPositions) do
-        humanoidRootPart.CFrame = CFrame.new(pos) -- Dịch chuyển đến vị trí chậu
-        wait(1.5) -- Chờ 1.5 giây
-        
-        pressE() -- Nhấn "E" để mở menu
-        wait(1.5)
-        
-        selectDiamondSeed() -- Chọn hạt giống Diamond Seed (Slot 1)
-        wait(1.5)
-        
-        pressConfirm() -- Nhấn "Confirm"
-        wait(1.5)
-        
-        pressYes() -- Nhấn "Yes" để trồng
-        wait(1.5)
+        humanoidRootPart.CFrame = CFrame.new(pos) -- Tele đến chậu cây
+
+        -- Nếu game sử dụng RemoteEvent để trồng cây, gửi lệnh trực tiếp
+        if plantEvent then
+            plantEvent:FireServer("Diamond Seed") -- Gửi lệnh trồng cây
+        else
+            -- Nếu không tìm thấy RemoteEvent, thử giả lập thao tác
+            local tool = player.Backpack:FindFirstChild("Diamond Seed")
+            if tool then
+                player.Character.Humanoid:EquipTool(tool) -- Chọn hạt giống
+            end
+            
+            wait(0.2) -- Chờ chút để game nhận diện
+
+            local confirmButton = game.Players.LocalPlayer.PlayerGui:FindFirstChild("ConfirmButton")
+            if confirmButton then
+                confirmButton:Fire() -- Nhấn "Confirm"
+            end
+
+            wait(0.2)
+
+            local yesButton = game.Players.LocalPlayer.PlayerGui:FindFirstChild("YesButton")
+            if yesButton then
+                yesButton:Fire() -- Nhấn "Yes"
+            end
+        end
+
+        wait(0.5) -- Đợi 0.5s trước khi trồng cây tiếp theo
     end
 end
 
