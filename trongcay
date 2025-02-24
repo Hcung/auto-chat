@@ -1,33 +1,31 @@
+local teleportPositions = {
+    Vector3.new(-464.85, 108.41, -1420.58),
+    Vector3.new(-454.03, 108.80, -1420.85),
+    Vector3.new(-439.38, 108.42, -1410.63),
+    Vector3.new(-439.11, 108.42, -1399.78),
+    Vector3.new(-442.27, 108.41, -1377.93),
+    Vector3.new(-453.42, 108.80, -1377.46),
+    Vector3.new(-451.87, 108.80, -1396.94),
+    Vector3.new(-463.72, 108.80, -1377.45)
+}
+
 local player = game.Players.LocalPlayer
 local character = player.Character or player.CharacterAdded:Wait()
-local hrp = character:WaitForChild("HumanoidRootPart")
+local humanoidRootPart = character:FindFirstChild("HumanoidRootPart")
 
--- 🌿 Tìm tất cả chậu cây trong game
-local plantPots = {}
-for _, obj in pairs(workspace:GetDescendants()) do
-    if obj:IsA("Part") and obj.Name == "PlantPot" then
-        table.insert(plantPots, obj)
+function teleportAndPlant()
+    for _, pos in ipairs(teleportPositions) do
+        humanoidRootPart.CFrame = CFrame.new(pos) -- Dịch chuyển đến vị trí chậu
+        wait(0.5) -- Chờ một chút trước khi nhấn E
+        
+        -- Giả lập nhấn phím "E"
+        local VirtualInputManager = game:GetService("VirtualInputManager")
+        VirtualInputManager:SendKeyEvent(true, Enum.KeyCode.E, false, game)
+        wait(0.1) -- Giữ phím trong thời gian ngắn
+        VirtualInputManager:SendKeyEvent(false, Enum.KeyCode.E, false, game)
+        
+        wait(1) -- Chờ trồng xong trước khi chuyển sang chậu tiếp theo
     end
 end
 
-for _, pot in ipairs(plantPots) do
-    -- 🚀 Teleport đến từng chậu cây
-    hrp.CFrame = CFrame.new(pot.Position + Vector3.new(0, 3, 0))
-    wait(0.5)
-
-    -- 🔄 Kiểm tra ClickDetector
-    local clickDetector = pot:FindFirstChildWhichIsA("ClickDetector")
-    if clickDetector then
-        fireclickdetector(clickDetector)
-        wait(0.5)
-    end
-
-    -- 🌳 Gửi lệnh trồng cây Diamond
-    local args = {
-        [1] = "PlantTree",
-        [2] = "DiamondTree"
-    }
-    game.ReplicatedStorage.RemoteEvent:FireServer(unpack(args))
-
-    wait(1)
-end
+teleportAndPlant()
