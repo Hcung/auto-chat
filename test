@@ -2,25 +2,9 @@ local player = game.Players.LocalPlayer
 if player and player.Character then
     local hrp = player.Character:FindFirstChild("HumanoidRootPart")
     if hrp then
-        -- Toạ độ trước cửa Minigame (Cập nhật nếu cần)
-        local toaDoMinigame = Vector3.new(183.913, 22.938, 1995.265)
+        local chậuCây = {} -- Lưu danh sách chậu cây trong game
 
-        -- Teleport đến Minigame
-        print("🚀 Teleport đến trước cửa Minigame...")
-        hrp.CFrame = CFrame.new(toaDoMinigame)
-        wait(1)
-
-        -- Đi vài bước vào bên trong
-        print("🚶 Đi vào bên trong Minigame...")
-        for i = 1, 5 do
-            hrp.CFrame = hrp.CFrame * CFrame.new(0, 0, -2) -- Đi thẳng vào
-            wait(0.5)
-        end
-
-        print("🎯 Đã vào trong Minigame. Bắt đầu trồng cây Diamond...")
-
-        -- Tìm tất cả chậu cây trong game
-        local chậuCây = {}
+        -- Tìm tất cả các chậu cây
         for _, v in pairs(game:GetService("Workspace"):GetChildren()) do
             if v:IsA("Part") and v.Name == "PlantPot" then
                 table.insert(chậuCây, v.Position)
@@ -36,33 +20,33 @@ if player and player.Character then
         print("🌿 Tìm thấy " .. #chậuCây .. " chậu cây. Bắt đầu trồng Diamond...")
 
         for _, pos in pairs(chậuCây) do
-            -- Teleport đến chậu cây
-            hrp.CFrame = CFrame.new(pos + Vector3.new(0, 3, 0))
-            wait(0.5)
-
-            -- Mở menu trồng cây (Dùng AWP Executor)
+            -- Bước 1: Teleport đến chậu cây
+            hrp.CFrame = CFrame.new(pos + Vector3.new(0, 3, 0)) -- Đứng phía trên chậu
+            wait(0.5) -- Chờ để game load
+            
+            -- Bước 2: Mở menu trồng cây (Dùng AWP Executor)
             AWP.Execute(function()
                 game:GetService("ReplicatedStorage").RemoteEvent:FireServer("OpenPlantingMenu")
             end)
 
-            wait(0.5)
+            wait(0.5) -- Chờ menu mở
 
-            -- Chọn cây Diamond
+            -- Bước 3: Chọn cây Diamond
             AWP.Execute(function()
                 game:GetService("ReplicatedStorage").RemoteEvent:FireServer("SelectPlant", "DiamondTree")
             end)
 
             wait(0.2)
 
-            -- Xác nhận trồng
+            -- Bước 4: Xác nhận trồng
             AWP.Execute(function()
                 game:GetService("ReplicatedStorage").RemoteEvent:FireServer("ConfirmPlant")
             end)
 
             print("✅ Đã trồng cây Diamond tại chậu: ", pos)
-            wait(1)
+            wait(1) -- Chờ trước khi qua chậu tiếp theo
         end
 
-        print("🎉 Đã hoàn thành trồng tất cả cây Diamond!")
+        print("🎉 Đã hoàn thành trồng tất cả các cây Diamond!")
     end
 end
