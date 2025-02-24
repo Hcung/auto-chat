@@ -2,8 +2,20 @@ local player = game.Players.LocalPlayer
 local character = player.Character or player.CharacterAdded:Wait()
 local humanoidRootPart = character:FindFirstChild("HumanoidRootPart")
 
--- Giả sử game có RemoteEvent để trồng cây (thay "PlantSeedEvent" bằng đúng tên sự kiện)
-local plantEvent = game:GetService("ReplicatedStorage"):FindFirstChild("PlantSeedEvent")
+-- Kiểm tra tất cả các RemoteEvent có trong ReplicatedStorage
+local replicatedStorage = game:GetService("ReplicatedStorage")
+local possibleEvents = replicatedStorage:GetChildren()
+
+print("📢 Đang kiểm tra sự kiện trồng cây trong game...")
+
+for _, event in pairs(possibleEvents) do
+    if event:IsA("RemoteEvent") then
+        print("🔍 Tìm thấy sự kiện: " .. event.Name)
+    end
+end
+
+-- Cập nhật tên sự kiện nếu tìm thấy
+local plantEvent = replicatedStorage:FindFirstChild("PlantSeedEvent") or replicatedStorage:FindFirstChild("PlantDiamond")
 
 -- Danh sách ô đất trồng cây (tọa độ cần chính xác)
 local farmPlots = {
@@ -25,15 +37,20 @@ end
 -- Hàm trồng cây Diamond Seed
 local function plantDiamondSeed()
     if plantEvent then
+        print("🌱 Đang sử dụng sự kiện trồng cây: " .. plantEvent.Name)
         plantEvent:FireServer("DiamondSeed") -- Gửi yêu cầu trồng cây lên server
     else
-        warn("Không tìm thấy sự kiện trồng cây, thử trồng thủ công...")
-        -- Nếu game không có RemoteEvent, có thể cần dùng AutoClick
+        warn("🚨 Không tìm thấy sự kiện trồng cây! Thử click chuột để trồng...")
+        -- Auto Click nếu game không có RemoteEvent
+        local virtualUser = game:GetService("VirtualUser")
+        virtualUser:Button1Down(Vector2.new(0, 0)) -- Giả lập click chuột
+        wait(0.2)
+        virtualUser:Button1Up(Vector2.new(0, 0))
     end
 end
 
 -- Lặp qua từng ô đất để trồng cây
-print("Bắt đầu trồng Diamond Seed...")
+print("🌱 Bắt đầu trồng Diamond Seed...")
 
 for _, position in pairs(farmPlots) do
     teleportTo(position)
@@ -41,4 +58,4 @@ for _, position in pairs(farmPlots) do
     wait(1)  -- Chờ 1 giây trước khi trồng cây ở ô tiếp theo
 end
 
-print("Đã trồng xong tất cả Diamond Seed!")
+print("✅ Đã trồng xong tất cả Diamond Seed!")
