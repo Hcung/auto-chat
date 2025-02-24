@@ -1,0 +1,44 @@
+local player = game.Players.LocalPlayer
+local character = player.Character or player.CharacterAdded:Wait()
+local humanoidRootPart = character:FindFirstChild("HumanoidRootPart")
+
+-- Giả sử game có RemoteEvent để trồng cây (thay "PlantSeedEvent" bằng đúng tên sự kiện)
+local plantEvent = game:GetService("ReplicatedStorage"):FindFirstChild("PlantSeedEvent")
+
+-- Danh sách ô đất trồng cây (tọa độ cần chính xác)
+local farmPlots = {
+    Vector3.new(50, 5, 100),  
+    Vector3.new(70, 5, 120),  
+    Vector3.new(90, 5, 140),  
+    Vector3.new(110, 5, 160),  
+    Vector3.new(130, 5, 180)  
+}
+
+-- Hàm teleport đến ô đất
+local function teleportTo(position)
+    if humanoidRootPart then
+        humanoidRootPart.CFrame = CFrame.new(position)
+        wait(0.5) -- Chờ nửa giây để đảm bảo nhân vật đã đứng yên
+    end
+end
+
+-- Hàm trồng cây Diamond Seed
+local function plantDiamondSeed()
+    if plantEvent then
+        plantEvent:FireServer("DiamondSeed") -- Gửi yêu cầu trồng cây lên server
+    else
+        warn("Không tìm thấy sự kiện trồng cây, thử trồng thủ công...")
+        -- Nếu game không có RemoteEvent, có thể cần dùng AutoClick
+    end
+end
+
+-- Lặp qua từng ô đất để trồng cây
+print("Bắt đầu trồng Diamond Seed...")
+
+for _, position in pairs(farmPlots) do
+    teleportTo(position)
+    plantDiamondSeed()
+    wait(1)  -- Chờ 1 giây trước khi trồng cây ở ô tiếp theo
+end
+
+print("Đã trồng xong tất cả Diamond Seed!")
