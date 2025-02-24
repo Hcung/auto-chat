@@ -12,59 +12,39 @@ local teleportPositions = {
 local player = game.Players.LocalPlayer
 local character = player.Character or player.CharacterAdded:Wait()
 local humanoidRootPart = character:FindFirstChild("HumanoidRootPart")
-local UserInputService = game:GetService("UserInputService")
-local VirtualInputManager = game:GetService("VirtualInputManager")
+local mouse = player:GetMouse() -- Lấy chuột của người chơi
 
--- Giả lập nhấn phím E
-function pressE()
-    VirtualInputManager:SendKeyEvent(true, Enum.KeyCode.E, false, game)
-    wait(0.2)
-    VirtualInputManager:SendKeyEvent(false, Enum.KeyCode.E, false, game)
+-- Click chuột trái (bỏ delay)
+function clickMouse()
+    mouse1click() -- Giả lập bấm chuột trái
 end
 
--- Chọn Diamond Seed
-function selectDiamondSeed()
-    local tool = player.Backpack:FindFirstChild("Diamond Seed")
-    if tool then
-        player.Character.Humanoid:EquipTool(tool)
+-- Kiểm tra xem có trồng xong chưa
+function isPlanted()
+    local timeout = 5 -- Giới hạn thời gian chờ (5 giây)
+    local startTime = tick()
+
+    while tick() - startTime < timeout do
+        wait(0.2) -- Kiểm tra mỗi 0.2s
+        local gui = player.PlayerGui:FindFirstChild("PlantStatus")
+        if gui and gui.Text == "Planted!" then
+            return true
+        end
     end
+    return false
 end
 
--- Nhấn nút Confirm
-function pressConfirm()
-    local confirmButton = game.Players.LocalPlayer.PlayerGui:FindFirstChild("ConfirmButton")
-    if confirmButton then
-        confirmButton:Fire()
-    end
-end
-
--- Nhấn nút Yes
-function pressYes()
-    local yesButton = game.Players.LocalPlayer.PlayerGui:FindFirstChild("YesButton")
-    if yesButton then
-        yesButton:Fire()
-    end
-end
-
--- Thực hiện quá trình trồng cây
+-- Di chuyển tới từng chậu và trồng cây (bằng chuột hoàn toàn)
 function teleportAndPlant()
     for _, pos in ipairs(teleportPositions) do
-        humanoidRootPart.CFrame = CFrame.new(pos) -- Tele đến chậu cây
-        wait(0.5)
+        humanoidRootPart.CFrame = CFrame.new(pos) -- Dịch chuyển đến chậu cây
+        
+        clickMouse() -- Bấm chuột mở menu
+        clickMouse() -- Bấm chọn Diamond Seed
+        clickMouse() -- Nhấn Confirm
+        clickMouse() -- Nhấn Yes
 
-        pressE() -- Nhấn "E" để mở menu
-        wait(0.5)
-
-        selectDiamondSeed() -- Chọn hạt giống Diamond Seed
-        wait(0.5)
-
-        pressConfirm() -- Nhấn "Confirm"
-        wait(0.5)
-
-        pressYes() -- Nhấn "Yes"
-        wait(0.5)
-
-        -- Chờ 0.5s trước khi di chuyển sang chậu khác
+        isPlanted() -- Đợi trồng xong rồi mới chuyển cây khác
     end
 end
 
