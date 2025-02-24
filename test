@@ -2,16 +2,16 @@ local player = game.Players.LocalPlayer
 local character = player.Character or player.CharacterAdded:Wait()
 local hrp = character:WaitForChild("HumanoidRootPart")
 
--- 🏁 Toạ độ trước Minigame (Có thể thay đổi nếu cần)
+-- 🏁 Toạ độ trước Minigame
 local minigamePosition = Vector3.new(183.913, 22.938, 1995.265)
 
 -- 🚀 Teleport đến trước Minigame
 hrp.CFrame = CFrame.new(minigamePosition)
 wait(1)
 
--- 🚶 Đi vào bên trong Minigame
+-- 🚶 Đi vài bước vào Minigame
 for i = 1, 5 do
-    hrp.CFrame = hrp.CFrame * CFrame.new(0, 0, -2) -- Di chuyển về phía trước
+    hrp.CFrame = hrp.CFrame * CFrame.new(0, 0, -2)
     wait(0.5)
 end
 
@@ -19,9 +19,9 @@ print("✅ Đã vào Minigame, bắt đầu tìm chậu cây...")
 
 -- 🌱 Tìm tất cả chậu cây trong game
 local plantPots = {}
-for _, obj in pairs(game.Workspace:GetChildren()) do
+for _, obj in pairs(workspace:GetDescendants()) do
     if obj:IsA("Part") and obj.Name == "PlantPot" then
-        table.insert(plantPots, obj.Position)
+        table.insert(plantPots, obj)
     end
 end
 
@@ -32,16 +32,22 @@ end
 
 print("🌿 Đã tìm thấy " .. #plantPots .. " chậu cây. Bắt đầu trồng Diamond...")
 
-for _, potPosition in ipairs(plantPots) do
+for _, pot in ipairs(plantPots) do
     -- 🚀 Teleport đến từng chậu cây
-    hrp.CFrame = CFrame.new(potPosition + Vector3.new(0, 3, 0))
+    hrp.CFrame = CFrame.new(pot.Position + Vector3.new(0, 3, 0))
     wait(0.5)
 
-    -- 🔄 Giả lập nhấp chuột vào chậu cây
-    fireclickdetector(workspace:FindFirstChild("PlantPot").ClickDetector)
-    wait(0.5)
+    -- 🔄 Kiểm tra ClickDetector
+    local clickDetector = pot:FindFirstChildWhichIsA("ClickDetector")
+    if clickDetector then
+        fireclickdetector(clickDetector)
+        wait(0.5)
+    else
+        print("⚠️ Không tìm thấy ClickDetector tại chậu:", pot.Position)
+        continue
+    end
 
-    -- 🌳 Chọn cây Diamond để trồng
+    -- 🌳 Gửi lệnh trồng cây Diamond
     local args = {
         [1] = "PlantTree",
         [2] = "DiamondTree"
@@ -49,7 +55,7 @@ for _, potPosition in ipairs(plantPots) do
     game.ReplicatedStorage.RemoteEvent:FireServer(unpack(args))
 
     wait(1)
-    print("✅ Đã trồng cây Diamond tại chậu: ", potPosition)
+    print("✅ Đã trồng cây Diamond tại chậu:", pot.Position)
 end
 
 print("🎉 Hoàn thành trồng tất cả cây Diamond!")
