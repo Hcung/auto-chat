@@ -12,52 +12,56 @@ local teleportPositions = {
 local player = game.Players.LocalPlayer
 local character = player.Character or player.CharacterAdded:Wait()
 local humanoidRootPart = character:FindFirstChild("HumanoidRootPart")
-local VirtualInputManager = game:GetService("VirtualInputManager")
+
+-- Tìm UI của game (có thể thay đổi nếu game khác)
+local UserInputService = game:GetService("UserInputService")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 function pressE()
-    -- Nhấn phím "E" để mở menu trồng cây
-    VirtualInputManager:SendKeyEvent(true, Enum.KeyCode.E, false, game)
-    wait(0.2)
-    VirtualInputManager:SendKeyEvent(false, Enum.KeyCode.E, false, game)
+    UserInputService.InputBegan:Fire(Enum.KeyCode.E) -- Gửi lệnh mở menu
+    wait(0.5)
 end
 
 function selectDiamondSeed()
-    -- Chọn hạt giống Diamond Seed (Slot 1)
-    VirtualInputManager:SendKeyEvent(true, Enum.KeyCode.One, false, game)
-    wait(0.2)
-    VirtualInputManager:SendKeyEvent(false, Enum.KeyCode.One, false, game)
+    local tool = player.Backpack:FindFirstChild("Diamond Seed")
+    if tool then
+        player.Character.Humanoid:EquipTool(tool) -- Chọn hạt giống
+    end
+    wait(0.5)
 end
 
 function pressConfirm()
-    -- Nhấn "Confirm" để chọn trồng
-    VirtualInputManager:SendKeyEvent(true, Enum.KeyCode.Return, false, game) -- Enter để xác nhận
-    wait(0.2)
-    VirtualInputManager:SendKeyEvent(false, Enum.KeyCode.Return, false, game)
+    local confirmButton = game.Players.LocalPlayer.PlayerGui:FindFirstChild("ConfirmButton")
+    if confirmButton then
+        confirmButton:Fire() -- Gửi sự kiện nhấn nút Confirm
+    end
+    wait(0.5)
 end
 
 function pressYes()
-    -- Nhấn "Yes" để xác nhận trồng
-    VirtualInputManager:SendKeyEvent(true, Enum.KeyCode.Y, false, game)
-    wait(0.2)
-    VirtualInputManager:SendKeyEvent(false, Enum.KeyCode.Y, false, game)
+    local yesButton = game.Players.LocalPlayer.PlayerGui:FindFirstChild("YesButton")
+    if yesButton then
+        yesButton:Fire() -- Gửi sự kiện nhấn nút Yes
+    end
+    wait(0.5)
 end
 
 function teleportAndPlant()
     for _, pos in ipairs(teleportPositions) do
         humanoidRootPart.CFrame = CFrame.new(pos) -- Dịch chuyển đến vị trí chậu
-        wait(5) -- Chờ 5 giây để load
+        wait(1.5) -- Chờ 1.5 giây
         
-        pressE() -- Nhấn "E" để mở menu trồng
-        wait(5) -- Chờ 5 giây để game nhận diện menu
+        pressE() -- Nhấn "E" để mở menu
+        wait(1.5)
         
         selectDiamondSeed() -- Chọn hạt giống Diamond Seed (Slot 1)
-        wait(5) -- Chờ 5 giây để game nhận diện
+        wait(1.5)
         
         pressConfirm() -- Nhấn "Confirm"
-        wait(5) -- Chờ 5 giây
+        wait(1.5)
         
         pressYes() -- Nhấn "Yes" để trồng
-        wait(5) -- Chờ 5 giây trước khi chuyển sang chậu tiếp theo
+        wait(1.5)
     end
 end
 
