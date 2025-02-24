@@ -17,7 +17,7 @@ end
 -- Cập nhật tên sự kiện nếu tìm thấy
 local plantEvent = replicatedStorage:FindFirstChild("PlantSeedEvent") or replicatedStorage:FindFirstChild("PlantDiamond")
 
--- Danh sách ô đất trồng cây (tọa độ cần chính xác)
+-- Danh sách ô đất trồng cây trong Minigame Flower Garden
 local farmPlots = {
     Vector3.new(50, 5, 100),  
     Vector3.new(70, 5, 120),  
@@ -26,11 +26,27 @@ local farmPlots = {
     Vector3.new(130, 5, 180)  
 }
 
--- Hàm teleport đến ô đất
+-- Tọa độ Minigame Flower Garden (cần thay đổi nếu khác)
+local minigameLocation = Vector3.new(300, 15, 500)
+
+-- Hàm teleport đến vị trí bất kỳ
 local function teleportTo(position)
     if humanoidRootPart then
         humanoidRootPart.CFrame = CFrame.new(position)
         wait(0.5) -- Chờ nửa giây để đảm bảo nhân vật đã đứng yên
+    end
+end
+
+-- Hàm vào Minigame Flower Garden
+local function enterMinigame()
+    local joinEvent = replicatedStorage:FindFirstChild("JoinMinigameEvent") or replicatedStorage:FindFirstChild("EnterFlowerGarden")
+
+    if joinEvent then
+        joinEvent:FireServer()
+        print("🌸 Đang vào Minigame Flower Garden bằng sự kiện...")
+    else
+        print("⚠️ Không tìm thấy sự kiện vào Minigame, thử dịch chuyển thủ công...")
+        teleportTo(minigameLocation)
     end
 end
 
@@ -49,7 +65,11 @@ local function plantDiamondSeed()
     end
 end
 
--- Lặp qua từng ô đất để trồng cây
+-- Bắt đầu quá trình tự động
+print("🚀 Đang vào Minigame Flower Garden...")
+enterMinigame()
+wait(3) -- Chờ 3 giây sau khi vào minigame
+
 print("🌱 Bắt đầu trồng Diamond Seed...")
 
 for _, position in pairs(farmPlots) do
@@ -58,4 +78,4 @@ for _, position in pairs(farmPlots) do
     wait(1)  -- Chờ 1 giây trước khi trồng cây ở ô tiếp theo
 end
 
-print("✅ Đã trồng xong tất cả Diamond Seed!")
+print("✅ Đã trồng xong tất cả Diamond Seed trong Minigame!")
