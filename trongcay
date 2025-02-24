@@ -15,26 +15,39 @@ local humanoidRootPart = character:FindFirstChild("HumanoidRootPart")
 local VirtualInputManager = game:GetService("VirtualInputManager")
 
 function selectDiamondSeed()
-    -- Chọn hạt giống Diamond Seed (Slot 2)
-    VirtualInputManager:SendKeyEvent(true, Enum.KeyCode.Two, false, game)
+    -- Chọn hạt giống Diamond Seed (Slot 1)
+    VirtualInputManager:SendKeyEvent(true, Enum.KeyCode.One, false, game)
     wait(0.2)
-    VirtualInputManager:SendKeyEvent(false, Enum.KeyCode.Two, false, game)
+    VirtualInputManager:SendKeyEvent(false, Enum.KeyCode.One, false, game)
+end
+
+function pressConfirm()
+    -- Nhấn "Confirm" để chọn trồng
+    VirtualInputManager:SendKeyEvent(true, Enum.KeyCode.Return, false, game) -- Enter để xác nhận
+    wait(0.2)
+    VirtualInputManager:SendKeyEvent(false, Enum.KeyCode.Return, false, game)
+end
+
+function pressYes()
+    -- Nhấn "Yes" để xác nhận trồng
+    VirtualInputManager:SendKeyEvent(true, Enum.KeyCode.Y, false, game)
+    wait(0.2)
+    VirtualInputManager:SendKeyEvent(false, Enum.KeyCode.Y, false, game)
 end
 
 function teleportAndPlant()
     for _, pos in ipairs(teleportPositions) do
         humanoidRootPart.CFrame = CFrame.new(pos) -- Dịch chuyển đến vị trí chậu
-        wait(0.5) -- Chờ một chút trước khi nhấn E
+        wait(5) -- Chờ 5 giây để load
         
-        selectDiamondSeed() -- Chọn hạt giống Diamond Seed (Slot 2)
-        wait(0.2) -- Chờ một chút để game nhận diện
+        selectDiamondSeed() -- Chọn hạt giống Diamond Seed (Slot 1)
+        wait(5) -- Chờ 5 giây để game nhận diện
         
-        -- Nhấn phím "E" để trồng cây
-        VirtualInputManager:SendKeyEvent(true, Enum.KeyCode.E, false, game)
-        wait(0.1)
-        VirtualInputManager:SendKeyEvent(false, Enum.KeyCode.E, false, game)
+        pressConfirm() -- Nhấn "Confirm"
+        wait(5) -- Chờ 5 giây
         
-        wait(1) -- Chờ trồng xong trước khi chuyển sang chậu tiếp theo
+        pressYes() -- Nhấn "Yes" để trồng
+        wait(5) -- Chờ 5 giây trước khi chuyển sang chậu tiếp theo
     end
 end
 
