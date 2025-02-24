@@ -6,7 +6,7 @@ local humanoidRootPart = character:FindFirstChild("HumanoidRootPart")
 local replicatedStorage = game:GetService("ReplicatedStorage")
 local possibleEvents = replicatedStorage:GetChildren()
 
-print("📢 Đang kiểm tra sự kiện trồng cây trong game...")
+print("📢 Đang kiểm tra sự kiện trong game...")
 
 for _, event in pairs(possibleEvents) do
     if event:IsA("RemoteEvent") then
@@ -14,39 +14,43 @@ for _, event in pairs(possibleEvents) do
     end
 end
 
--- Cập nhật tên sự kiện nếu tìm thấy
+-- Tìm sự kiện teleport Minigame
+local minigameEvent = replicatedStorage:FindFirstChild("EnterMinigame") or replicatedStorage:FindFirstChild("FlowerGardenTeleport")
+
+-- Tìm sự kiện trồng cây
 local plantEvent = replicatedStorage:FindFirstChild("PlantSeedEvent") or replicatedStorage:FindFirstChild("PlantDiamond")
 
--- Danh sách ô đất trồng cây trong Minigame Flower Garden
+-- Danh sách ô đất trồng cây trong Minigame Flower Garden (Bạn cần tự lấy tọa độ nếu sai)
 local farmPlots = {
-    Vector3.new(50, 5, 100),  
-    Vector3.new(70, 5, 120),  
-    Vector3.new(90, 5, 140),  
-    Vector3.new(110, 5, 160),  
-    Vector3.new(130, 5, 180)  
+    Vector3.new(150, 10, 200),  
+    Vector3.new(170, 10, 220),  
+    Vector3.new(190, 10, 240),  
+    Vector3.new(210, 10, 260),  
+    Vector3.new(230, 10, 280)  
 }
 
--- Tọa độ Minigame Flower Garden (cần thay đổi nếu khác)
-local minigameLocation = Vector3.new(300, 15, 500)
+-- Lấy tọa độ hiện tại để debug
+print("📍 Tọa độ hiện tại của nhân vật:", humanoidRootPart.Position)
+
+-- Tọa độ cổng Minigame Flower Garden (Bạn cần đứng trước cổng và chạy `print(humanoidRootPart.Position)` để lấy tọa độ)
+local minigamePortal = Vector3.new(500, 15, 600) -- Chỉnh lại nếu cần
 
 -- Hàm teleport đến vị trí bất kỳ
 local function teleportTo(position)
     if humanoidRootPart then
         humanoidRootPart.CFrame = CFrame.new(position)
-        wait(0.5) -- Chờ nửa giây để đảm bảo nhân vật đã đứng yên
+        wait(1) -- Chờ 1 giây để đảm bảo nhân vật đã đứng yên
     end
 end
 
 -- Hàm vào Minigame Flower Garden
 local function enterMinigame()
-    local joinEvent = replicatedStorage:FindFirstChild("JoinMinigameEvent") or replicatedStorage:FindFirstChild("EnterFlowerGarden")
-
-    if joinEvent then
-        joinEvent:FireServer()
+    if minigameEvent then
+        minigameEvent:FireServer()
         print("🌸 Đang vào Minigame Flower Garden bằng sự kiện...")
     else
-        print("⚠️ Không tìm thấy sự kiện vào Minigame, thử dịch chuyển thủ công...")
-        teleportTo(minigameLocation)
+        print("⚠️ Không tìm thấy sự kiện vào Minigame, thử dịch chuyển đến cổng Minigame...")
+        teleportTo(minigamePortal)
     end
 end
 
@@ -68,7 +72,7 @@ end
 -- Bắt đầu quá trình tự động
 print("🚀 Đang vào Minigame Flower Garden...")
 enterMinigame()
-wait(3) -- Chờ 3 giây sau khi vào minigame
+wait(5) -- Chờ 5 giây sau khi vào minigame
 
 print("🌱 Bắt đầu trồng Diamond Seed...")
 
