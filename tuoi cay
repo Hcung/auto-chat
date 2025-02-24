@@ -27,9 +27,11 @@ local teleportPositions = {
     Vector3.new(-463.72, 108.80, -1377.45)
 }
 
--- 🪣 Tưới cây (bấm chuột trái)
+-- 🪣 Tưới cây (bấm giữ và thả chuột)
 function waterPlant()
-    mouse1click()
+    mouse1press() -- Nhấn giữ chuột trái
+    wait(0.2) -- Giữ trong 0.2s
+    mouse1release() -- Thả chuột
 end
 
 -- 🚀 Di chuyển đến từng chậu và tưới cây
@@ -37,7 +39,7 @@ function teleportAndWater()
     for _, pos in ipairs(teleportPositions) do
         hrp.CFrame = CFrame.new(pos) -- Teleport đến chậu cây
         wait(0.3)
-        waterPlant() -- Bấm chuột tưới cây
+        waterPlant() -- Bấm giữ chuột để tưới cây
         wait(0.5) -- Đợi tưới xong rồi mới qua cây khác
     end
 end
