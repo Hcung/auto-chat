@@ -1,1 +1,1 @@
-print("📍 Tọa độ hiện tại của bạn:", game.Players.LocalPlayer.Character.HumanoidRootPart.Position)
+print(game.Players.LocalPlayer.Character.HumanoidRootPart.Position)
