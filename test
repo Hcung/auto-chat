@@ -2,6 +2,67 @@ local player = game.Players.LocalPlayer
 if player and player.Character then
     local hrp = player.Character:FindFirstChild("HumanoidRootPart")
     if hrp then
-        hrp.CFrame = CFrame.new(183.9130, 22.9383, 1995.2650)
+        -- Toạ độ trước cửa Minigame (Cập nhật nếu cần)
+        local toaDoMinigame = Vector3.new(183.913, 22.938, 1995.265)
+
+        -- Teleport đến Minigame
+        print("🚀 Teleport đến trước cửa Minigame...")
+        hrp.CFrame = CFrame.new(toaDoMinigame)
+        wait(1)
+
+        -- Đi vài bước vào bên trong
+        print("🚶 Đi vào bên trong Minigame...")
+        for i = 1, 5 do
+            hrp.CFrame = hrp.CFrame * CFrame.new(0, 0, -2) -- Đi thẳng vào
+            wait(0.5)
+        end
+
+        print("🎯 Đã vào trong Minigame. Bắt đầu trồng cây Diamond...")
+
+        -- Tìm tất cả chậu cây trong game
+        local chậuCây = {}
+        for _, v in pairs(game:GetService("Workspace"):GetChildren()) do
+            if v:IsA("Part") and v.Name == "PlantPot" then
+                table.insert(chậuCây, v.Position)
+            end
+        end
+
+        -- Nếu không tìm thấy chậu nào
+        if #chậuCây == 0 then
+            print("❌ Không tìm thấy chậu cây nào.")
+            return
+        end
+
+        print("🌿 Tìm thấy " .. #chậuCây .. " chậu cây. Bắt đầu trồng Diamond...")
+
+        for _, pos in pairs(chậuCây) do
+            -- Teleport đến chậu cây
+            hrp.CFrame = CFrame.new(pos + Vector3.new(0, 3, 0))
+            wait(0.5)
+
+            -- Mở menu trồng cây (Dùng AWP Executor)
+            AWP.Execute(function()
+                game:GetService("ReplicatedStorage").RemoteEvent:FireServer("OpenPlantingMenu")
+            end)
+
+            wait(0.5)
+
+            -- Chọn cây Diamond
+            AWP.Execute(function()
+                game:GetService("ReplicatedStorage").RemoteEvent:FireServer("SelectPlant", "DiamondTree")
+            end)
+
+            wait(0.2)
+
+            -- Xác nhận trồng
+            AWP.Execute(function()
+                game:GetService("ReplicatedStorage").RemoteEvent:FireServer("ConfirmPlant")
+            end)
+
+            print("✅ Đã trồng cây Diamond tại chậu: ", pos)
+            wait(1)
+        end
+
+        print("🎉 Đã hoàn thành trồng tất cả cây Diamond!")
     end
 end
