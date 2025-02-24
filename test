@@ -1,18 +1,7 @@
 local player = game.Players.LocalPlayer
-local character = player.Character or player.CharacterAdded:Wait()
-local hrp = character:FindFirstChild("HumanoidRootPart")
-
-if hrp then
-    -- Tọa độ trước cổng minigame
-    hrp.CFrame = CFrame.new(184.103, 22.25, 140.711)
-    
-    -- Đợi 1 giây cho nhân vật ổn định
-    wait(1)
-
-    -- Di chuyển nhân vật về phía trước để vào cổng minigame
-    local humanoid = character:FindFirstChild("Humanoid")
-    if humanoid then
-        humanoid.WalkSpeed = 50 -- Tăng tốc chạy để vào nhanh hơn
-        hrp.CFrame = hrp.CFrame * CFrame.new(0, 0, -5) -- Tiến về phía trước
+if player and player.Character then
+    local hrp = player.Character:FindFirstChild("HumanoidRootPart")
+    if hrp then
+        hrp.CFrame = CFrame.new(183.9130, 22.9383, 1995.2650)
     end
 end
