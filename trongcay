@@ -14,6 +14,13 @@ local character = player.Character or player.CharacterAdded:Wait()
 local humanoidRootPart = character:FindFirstChild("HumanoidRootPart")
 local VirtualInputManager = game:GetService("VirtualInputManager")
 
+function pressE()
+    -- Nhấn phím "E" để mở menu trồng cây
+    VirtualInputManager:SendKeyEvent(true, Enum.KeyCode.E, false, game)
+    wait(0.2)
+    VirtualInputManager:SendKeyEvent(false, Enum.KeyCode.E, false, game)
+end
+
 function selectDiamondSeed()
     -- Chọn hạt giống Diamond Seed (Slot 1)
     VirtualInputManager:SendKeyEvent(true, Enum.KeyCode.One, false, game)
@@ -39,6 +46,9 @@ function teleportAndPlant()
     for _, pos in ipairs(teleportPositions) do
         humanoidRootPart.CFrame = CFrame.new(pos) -- Dịch chuyển đến vị trí chậu
         wait(5) -- Chờ 5 giây để load
+        
+        pressE() -- Nhấn "E" để mở menu trồng
+        wait(5) -- Chờ 5 giây để game nhận diện menu
         
         selectDiamondSeed() -- Chọn hạt giống Diamond Seed (Slot 1)
         wait(5) -- Chờ 5 giây để game nhận diện
