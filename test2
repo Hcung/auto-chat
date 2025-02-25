@@ -2,7 +2,7 @@ local VirtualInputManager = game:GetService("VirtualInputManager")
 
 while true do
     VirtualInputManager:SendKeyEvent(true, "R", false, game) -- Nhấn phím "R"
-    wait(0.1) -- Chờ 0.1 giây (có thể chỉnh)
+    wait(0.05) -- Giữ phím trong 0.05 giây (có thể chỉnh)
     VirtualInputManager:SendKeyEvent(false, "R", false, game) -- Nhả phím "R"
-    wait(1) -- Delay giữa mỗi lần nhấn (có thể chỉnh)
+    wait(0.2) -- Delay ngắn giữa các lần nhấn (có thể chỉnh)
 end
