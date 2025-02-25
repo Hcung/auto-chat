@@ -1,0 +1,22 @@
+local player = game.Players.LocalPlayer
+local replicatedStorage = game:GetService("ReplicatedStorage")
+local gardenMerchant = replicatedStorage:FindFirstChild("GardenMerchant")
+
+if not gardenMerchant then
+    warn("❌ Không tìm thấy Garden Merchant!")
+    return
+end
+
+-- 📌 Hàm để mua item từ merchant
+function buyAllItems()
+    for _, item in ipairs(gardenMerchant:GetChildren()) do
+        if item:IsA("RemoteEvent") then
+            item:FireServer() -- Gửi yêu cầu mua item
+            wait(0.3) -- Delay tránh spam quá nhanh
+        end
+    end
+end
+
+-- 🚀 Tự động mua tất cả vật phẩm
+buyAllItems()
+print("✅ Đã mua xong tất cả vật phẩm từ Garden Merchant!")
