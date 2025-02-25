@@ -1,61 +1,22 @@
 local player = game.Players.LocalPlayer
-local character = player.Character or player.CharacterAdded:Wait()
-local hrp = character:WaitForChild("HumanoidRootPart")
+local backpack = player:FindFirstChild("Backpack") or player:WaitForChild("Backpack")
 
--- 🏁 Toạ độ trước Minigame
-local minigamePosition = Vector3.new(183.913, 22.938, 1995.265)
-
--- 🚀 Teleport đến trước Minigame
-hrp.CFrame = CFrame.new(minigamePosition)
-wait(1)
-
--- 🚶 Đi vài bước vào Minigame
-for i = 1, 5 do
-    hrp.CFrame = hrp.CFrame * CFrame.new(0, 0, -2)
-    wait(0.5)
-end
-
-print("✅ Đã vào Minigame, bắt đầu tìm chậu cây...")
-
--- 🌱 Tìm tất cả chậu cây trong game
-local plantPots = {}
-for _, obj in pairs(workspace:GetDescendants()) do
-    if obj:IsA("Part") and obj.Name == "PlantPot" then
-        table.insert(plantPots, obj)
-    end
-end
-
-if #plantPots == 0 then
-    print("❌ Không tìm thấy chậu cây nào!")
-    return
-end
-
-print("🌿 Đã tìm thấy " .. #plantPots .. " chậu cây. Bắt đầu trồng Diamond...")
-
-for _, pot in ipairs(plantPots) do
-    -- 🚀 Teleport đến từng chậu cây
-    hrp.CFrame = CFrame.new(pot.Position + Vector3.new(0, 3, 0))
-    wait(0.5)
-
-    -- 🔄 Kiểm tra ClickDetector
-    local clickDetector = pot:FindFirstChildWhichIsA("ClickDetector")
-    if clickDetector then
-        fireclickdetector(clickDetector)
-        wait(0.5)
-    else
-        print("⚠️ Không tìm thấy ClickDetector tại chậu:", pot.Position)
-        continue
+-- 📌 Hàm đếm số lượng Seed Bag
+function countSeedBags()
+    local seedBagCount = 0
+    
+    for _, item in ipairs(backpack:GetChildren()) do
+        if item:IsA("Tool") and string.match(item.Name, "Seed Bag") then
+            seedBagCount = seedBagCount + 1
+        end
     end
 
-    -- 🌳 Gửi lệnh trồng cây Diamond
-    local args = {
-        [1] = "PlantTree",
-        [2] = "DiamondTree"
-    }
-    game.ReplicatedStorage.RemoteEvent:FireServer(unpack(args))
-
-    wait(1)
-    print("✅ Đã trồng cây Diamond tại chậu:", pot.Position)
+    return seedBagCount
 end
 
-print("🎉 Hoàn thành trồng tất cả cây Diamond!")
+-- 🚀 In số lượng Seed Bag ra console
+while true do
+    local count = countSeedBags()
+    print("🌱 Số lượng Seed Bag trong inventory:", count)
+    wait(5) -- Cập nhật mỗi 5 giây (có thể chỉnh)
+end
