@@ -1,13 +1,18 @@
 local player = game.Players.LocalPlayer
-local backpack = player:FindFirstChild("Backpack") or player:WaitForChild("Backpack")
+local inventoryFolders = { "Backpack", "StarterGear", "Character" } -- Các nơi có thể chứa item
 
 -- 📌 Hàm đếm số lượng Insta-Plant Capsule
 function countCapsules()
     local capsuleCount = 0
-    
-    for _, item in ipairs(backpack:GetChildren()) do
-        if item:IsA("Tool") and string.match(item.Name, "Insta-Plant Capsule") then
-            capsuleCount = capsuleCount + 1
+
+    for _, folderName in ipairs(inventoryFolders) do
+        local container = player:FindFirstChild(folderName)
+        if container then
+            for _, item in ipairs(container:GetChildren()) do
+                if item:IsA("Tool") and string.find(item.Name, "Capsule") then
+                    capsuleCount = capsuleCount + 1
+                end
+            end
         end
     end
 
