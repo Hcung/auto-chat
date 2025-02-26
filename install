@@ -1,0 +1,22 @@
+local player = game.Players.LocalPlayer
+local backpack = player:FindFirstChild("Backpack") or player:WaitForChild("Backpack")
+
+-- 📌 Hàm đếm số lượng Insta-Plant Capsule
+function countCapsules()
+    local capsuleCount = 0
+    
+    for _, item in ipairs(backpack:GetChildren()) do
+        if item:IsA("Tool") and string.match(item.Name, "Insta%-Plant Capsule") then
+            capsuleCount = capsuleCount + 1
+        end
+    end
+
+    return capsuleCount
+end
+
+-- 🚀 In số lượng Insta-Plant Capsule ra console
+while true do
+    local count = countCapsules()
+    print("🟢 Số lượng Insta-Plant Capsule trong inventory:", count)
+    wait(5) -- Cập nhật mỗi 5 giây (có thể chỉnh)
+end
