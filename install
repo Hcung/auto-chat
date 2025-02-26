@@ -6,7 +6,7 @@ function countCapsules()
     local capsuleCount = 0
     
     for _, item in ipairs(backpack:GetChildren()) do
-        if item:IsA("Tool") and string.match(item.Name, "Insta%-Plant Capsule") then
+        if item:IsA("Tool") and string.match(item.Name, "Insta-Plant Capsule") then
             capsuleCount = capsuleCount + 1
         end
     end
