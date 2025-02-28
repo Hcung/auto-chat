@@ -1,17 +1,25 @@
 local player = game.Players.LocalPlayer
-local inventoryFolders = { "Backpack", "StarterGear", "Character" } -- Các nơi có thể chứa item
+local dataFolder = player:FindFirstChild("Inventory") or player:FindFirstChild("PlayerData") -- Tìm thư mục chứa Keys
 
--- 📌 Hàm in danh sách toàn bộ item trong inventory
-function listAllItems()
-    for _, folderName in ipairs(inventoryFolders) do
-        local container = player:FindFirstChild(folderName)
-        if container then
-            for _, item in ipairs(container:GetChildren()) do
-                print("📦 Item:", item.Name, "| Nằm trong:", folderName)
+-- 📌 Hàm đếm số lượng Secret Key
+function countSecretKeys()
+    if dataFolder then
+        local keysFolder = dataFolder:FindFirstChild("Keys") -- Tìm thư mục "Keys"
+        if keysFolder then
+            for _, item in ipairs(keysFolder:GetChildren()) do
+                if string.find(item.Name, "Secret Key") then
+                    print("🔑 Số lượng Secret Key:", item.Value)
+                    return item.Value
+                end
             end
         end
     end
+    print("❌ Không tìm thấy Secret Key!")
+    return 0
 end
 
--- 🚀 Chạy script để in danh sách item
-listAllItems()
+-- 🚀 In số lượng Secret Key ra console
+while true do
+    countSecretKeys()
+    wait(5) -- Cập nhật mỗi 5 giây
+end
