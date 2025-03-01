@@ -20,15 +20,18 @@ end
 -- 📌 Teleport ngay khi vào game đến trước cổng map
 teleportToStart()
 
--- 📌 Chờ 1 giây rồi di chuyển vào map
+-- 📌 Chờ 1 giây rồi di chuyển vào map từng bước
 task.wait(1)
 
--- 📌 Di chuyển nhân vật về phía trước (3-4 bước)
-local moveDirection = Vector3.new(0, 0, -5) -- Điều chỉnh vector để đi đúng hướng vào map
-for i = 1, 4 do
-    humanoidRootPart.CFrame = humanoidRootPart.CFrame * CFrame.new(moveDirection)
-    task.wait(0.5) -- Đợi để tránh lỗi dịch chuyển quá nhanh
+print("🚶‍♂️ Đang di chuyển vào map...")
+local moveSteps = 5 -- Chia nhỏ số bước đi để tránh rớt map
+local stepSize = Vector3.new(0, 0, -1.25) -- Điều chỉnh vector để đi đúng hướng
+
+for i = 1, moveSteps do
+    humanoidRootPart.CFrame = humanoidRootPart.CFrame * CFrame.new(stepSize)
+    task.wait(0.4) -- Chờ giữa mỗi bước để tránh lỗi dịch chuyển quá nhanh
 end
+
 print("🚶‍♂️ Nhân vật đã vào map!")
 
 -- 📌 Chờ 2 giây sau khi vào map rồi teleport đến chỗ tưới cây
