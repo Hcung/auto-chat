@@ -36,10 +36,10 @@ task.wait(2)
 humanoidRootPart.CFrame = CFrame.new(targetPosition)
 print("✅ Teleport đến vị trí tưới cây!")
 
--- 📌 Chỉnh camera cao hơn một chút nhưng không lock
+-- 📌 Chỉnh camera cao lên và lùi ra sau một chút để tránh bị che khuất
 local camera = game.Workspace.CurrentCamera
 task.wait(0.5) -- Đợi một chút để tránh lỗi khi camera chưa load xong
-camera.CFrame = camera.CFrame * CFrame.new(0, 5, 0) -- Đẩy camera lên cao hơn 5 đơn vị
+camera.CFrame = camera.CFrame * CFrame.new(0, 10, -10) -- Đẩy camera lên cao hơn 10 đơn vị và lùi ra sau 10 đơn vị
 
 -- 📌 Kiểm tra nếu nhân vật bị rớt khỏi map, tự động teleport về lại trước cổng
 task.spawn(function()
