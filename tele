@@ -20,27 +20,25 @@ end
 -- 📌 Teleport ngay khi vào game đến trước cổng map
 teleportToStart()
 
--- 📌 Chờ 1 giây rồi bắt đầu đi bộ vào map
+-- 📌 Chờ 1 giây rồi bắt đầu đi bộ vào map (chỉ 3 bước)
 task.wait(1)
 
 print("🚶‍♂️ Đang đi bộ vào map...")
 local moveSteps = {
-    Vector3.new(184.9508819580078, 22.715150833129883, 1993),
-    Vector3.new(184.9508819580078, 22.715150833129883, 1990),
-    Vector3.new(184.9508819580078, 22.715150833129883, 1987),
-    Vector3.new(184.9508819580078, 22.715150833129883, 1984),
-    Vector3.new(184.9508819580078, 22.715150833129883, 1981)
+    Vector3.new(184.9508819580078, 22.715150833129883, 1993), -- Bước 1
+    Vector3.new(184.9508819580078, 22.715150833129883, 1990), -- Bước 2
+    Vector3.new(184.9508819580078, 22.715150833129883, 1987)  -- Bước 3 (Dừng tại đây)
 }
 
 for _, step in ipairs(moveSteps) do
     humanoid:MoveTo(step)
-    humanoid.MoveToFinished:Wait() -- Đợi nhân vật đi xong từng bước
+    humanoid.MoveToFinished:Wait() -- Đợi nhân vật đi xong mỗi bước
     task.wait(0.3) -- Chờ một chút để tránh lỗi dịch chuyển nhanh
 end
 
 print("🚶‍♂️ Đã đi vào trong map!")
 
--- 📌 Chờ 2 giây sau khi vào map rồi teleport đến chỗ tưới cây
+-- 📌 DỪNG lại, chờ 2 giây rồi teleport đến chỗ tưới cây
 task.wait(2)
 humanoidRootPart.CFrame = CFrame.new(targetPosition)
 print("✅ Teleport đến vị trí tưới cây!")
