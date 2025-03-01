@@ -6,7 +6,7 @@ local humanoid = character:WaitForChild("Humanoid")
 -- 📌 Tọa độ điểm trước cổng vào map
 local startPosition = Vector3.new(184.9508819580078, 22.715150833129883, 1995.9241943359375)
 
--- 📌 Tọa độ điểm tưới cây (Đã thay bằng tọa độ mới)
+-- 📌 Tọa độ điểm tưới cây (Cập nhật tọa độ mới)
 local targetPosition = Vector3.new(-450.8958740234375, 108.41856384277344, -1392.82421875)
 
 -- 📌 Hàm teleport nhân vật đến trước cổng
@@ -20,16 +20,22 @@ end
 -- 📌 Teleport ngay khi vào game đến trước cổng map
 teleportToStart()
 
--- 📌 Chờ 1 giây rồi di chuyển vào map từng bước
+-- 📌 Chờ 1 giây rồi di chuyển vào map từ từ
 task.wait(1)
 
 print("🚶‍♂️ Đang di chuyển vào map...")
-local moveSteps = 5 -- Chia nhỏ số bước đi để tránh rớt map
-local stepSize = Vector3.new(0, 0, -1.25) -- Điều chỉnh vector để đi đúng hướng
+local moveSteps = {
+    Vector3.new(184.9508819580078, 22.715150833129883, 1993),
+    Vector3.new(184.9508819580078, 22.715150833129883, 1990),
+    Vector3.new(184.9508819580078, 22.715150833129883, 1987),
+    Vector3.new(184.9508819580078, 22.715150833129883, 1984),
+    Vector3.new(184.9508819580078, 22.715150833129883, 1981)
+}
 
-for i = 1, moveSteps do
-    humanoidRootPart.CFrame = humanoidRootPart.CFrame * CFrame.new(stepSize)
-    task.wait(0.4) -- Chờ giữa mỗi bước để tránh lỗi dịch chuyển quá nhanh
+for _, step in ipairs(moveSteps) do
+    humanoid:MoveTo(step)
+    humanoid.MoveToFinished:Wait() -- Đợi nhân vật đi xong từng bước
+    task.wait(0.3) -- Chờ một chút để tránh lỗi dịch chuyển nhanh
 end
 
 print("🚶‍♂️ Nhân vật đã vào map!")
@@ -41,10 +47,10 @@ print("✅ Teleport đến vị trí tưới cây!")
 
 -- 📌 Chỉnh camera cao lên và lùi ra sau một chút để tránh bị che khuất
 local camera = game.Workspace.CurrentCamera
-task.wait(0.5) -- Đợi một chút để tránh lỗi khi camera chưa load xong
-camera.CFrame = camera.CFrame * CFrame.new(0, 10, -10) -- Đẩy camera lên cao hơn 10 đơn vị và lùi ra sau 10 đơn vị
+task.wait(0.5)
+camera.CFrame = camera.CFrame * CFrame.new(0, 10, -10)
 
--- 📌 Hàm tự động tưới cây (tưới mỗi cây 4 lần)
+-- 📌 Hàm tự động tưới cây (mỗi cây 4 lần)
 local function waterPlants()
     local plantPositions = {
         Vector3.new(-452.69903564453125, 107.31900787353516, -1400.0970458984375),
@@ -60,7 +66,7 @@ local function waterPlants()
                 [2] = pos
             }
             game:GetService("ReplicatedStorage").Network.Click:FireServer(unpack(args))
-            task.wait(0.5) -- Chờ 0.5 giây giữa mỗi lần click để tránh lag
+            task.wait(0.5) -- Chờ 0.5 giây giữa mỗi lần click
         end
         print("🌱 Đã tưới xong 4 lần cho cây tại:", pos)
     end
@@ -73,8 +79,8 @@ waterPlants()
 
 -- 📌 Kiểm tra nếu nhân vật bị rớt khỏi map, tự động teleport về lại trước cổng
 task.spawn(function()
-    while task.wait(2) do -- Kiểm tra mỗi 2 giây
-        if humanoidRootPart and humanoidRootPart.Position.Y < 10 then -- Nếu rơi xuống quá thấp
+    while task.wait(2) do
+        if humanoidRootPart and humanoidRootPart.Position.Y < 10 then
             print("⚠️ Phát hiện nhân vật rớt khỏi map! Đang teleport lại trước cổng...")
             teleportToStart()
         end
