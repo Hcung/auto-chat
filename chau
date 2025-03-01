@@ -1,0 +1,27 @@
+-- 📌 Tọa độ chậu cây cần click
+local plantPosition = Vector3.new(-452.69903564453125, 106.86642456054688, -1398.644287109375)
+
+-- 📌 Hàm gửi lệnh click một lần
+local function autoClick(position)
+    local player = game.Players.LocalPlayer
+    local character = player.Character or player.CharacterAdded:Wait()
+    local humanoidRootPart = character:FindFirstChild("HumanoidRootPart")
+
+    if humanoidRootPart then
+        local startPos = humanoidRootPart.Position -- Lấy vị trí hiện tại của nhân vật làm điểm bắt đầu
+        local direction = (position - startPos).unit * 10 -- Xác định hướng của Ray
+
+        local args = {
+            [1] = Ray.new(startPos, direction),
+            [2] = position
+        }
+
+        game:GetService("ReplicatedStorage").Network.Click:FireServer(unpack(args))
+        print("✅ Đã click vào vị trí:", position)
+    else
+        warn("⚠️ Không tìm thấy HumanoidRootPart!")
+    end
+end
+
+-- 📌 Gọi hàm click vào chậu cây một lần
+autoClick(plantPosition)
