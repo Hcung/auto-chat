@@ -2,47 +2,45 @@ local player = game.Players.LocalPlayer
 local character = player.Character or player.CharacterAdded:Wait()
 local hrp = character:WaitForChild("HumanoidRootPart")
 
--- 🏁 Toạ độ trước Minigame
-local minigamePosition = Vector3.new(183.913, 22.938, 1995.265)
+-- Lưu danh sách các cây tìm thấy trong game
+local foundPlants = {}
 
--- 🚀 Teleport đến trước Minigame
-hrp.CFrame = CFrame.new(minigamePosition)
-wait(1)
+-- Sự kiện khi nhấn chuột
+local UIS = game:GetService("UserInputService")
 
--- 🚶 Đi vài bước vào Minigame
-for i = 1, 5 do
-    hrp.CFrame = hrp.CFrame * CFrame.new(0, 0, -2)
-    wait(0.5)
+local function getMousePosition()
+    local mouse = player:GetMouse()
+    return Vector3.new(mouse.Hit.p.X, mouse.Hit.p.Y, mouse.Hit.p.Z)
 end
 
--- 🌱 Tọa độ các chậu cây
-local teleportPositions = {
-    Vector3.new(-464.85, 108.41, -1420.58),
-    Vector3.new(-454.03, 108.80, -1420.85),
-    Vector3.new(-439.38, 108.42, -1410.63),
-    Vector3.new(-439.11, 108.42, -1399.78),
-    Vector3.new(-442.27, 108.41, -1377.93),
-    Vector3.new(-453.42, 108.80, -1377.46),
-    Vector3.new(-451.87, 108.80, -1396.94),
-    Vector3.new(-463.72, 108.80, -1377.45)
-}
-
--- 🪣 Tưới cây (bấm giữ và thả chuột)
-function waterPlant()
-    mouse1press() -- Nhấn giữ chuột trái
-    wait(0.2) -- Giữ trong 0.2s
-    mouse1release() -- Thả chuột
+-- Hàm in ra thông tin click chuột
+local function onClick()
+    local mousePosition = getMousePosition()
+    local cam = workspace.CurrentCamera
+    local direction = (mousePosition - cam.CFrame.Position).unit
+    
+    local ray = Ray.new(cam.CFrame.Position, direction * 500)
+    
+    print("\n🌱 **Tọa độ cây:**", mousePosition)
+    print("🎯 **Raycast Click:**", ray)
+    
+    table.insert(foundPlants, mousePosition)
 end
 
--- 🚀 Di chuyển đến từng chậu và tưới cây
-function teleportAndWater()
-    for _, pos in ipairs(teleportPositions) do
-        hrp.CFrame = CFrame.new(pos) -- Teleport đến chậu cây
-        wait(0.3)
-        waterPlant() -- Bấm giữ chuột để tưới cây
-        wait(0.5) -- Đợi tưới xong rồi mới qua cây khác
+-- Lắng nghe sự kiện chuột trái
+UIS.InputBegan:Connect(function(input, gameProcessed)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 then
+        onClick()
     end
-end
+end)
 
--- 🚀 Bắt đầu tưới cây
-teleportAndWater()
+-- Di chuyển đến cây tiếp theo sau khi nhấn một phím (ví dụ: phím "N")
+UIS.InputBegan:Connect(function(input, gameProcessed)
+    if input.KeyCode == Enum.KeyCode.N then
+        if #foundPlants > 0 then
+            local nextPlant = table.remove(foundPlants, 1)
+            hrp.CFrame = CFrame.new(nextPlant)
+            print("🚀 **Di chuyển đến cây:**", nextPlant)
+        end
+    end
+end)
