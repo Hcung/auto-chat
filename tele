@@ -6,8 +6,8 @@ local humanoid = character:WaitForChild("Humanoid")
 -- 📌 Tọa độ điểm trước cổng vào map
 local startPosition = Vector3.new(184.9508819580078, 22.715150833129883, 1995.9241943359375)
 
--- 📌 Tọa độ điểm tưới cây (cao hơn một chút)
-local targetPosition = Vector3.new(-465.9693908691406, 110, -1399.500244140625) -- Tăng Y lên 110
+-- 📌 Tọa độ điểm tưới cây
+local targetPosition = Vector3.new(-465.9693908691406, 108.42337036132812, -1399.500244140625)
 
 -- 📌 Hàm teleport nhân vật đến trước cổng
 local function teleportToStart()
@@ -31,15 +31,10 @@ for i = 1, 4 do
 end
 print("🚶‍♂️ Nhân vật đã vào map!")
 
--- 📌 Chờ 2 giây sau khi vào map rồi teleport đến chỗ tưới cây (cao hơn)
+-- 📌 Chờ 2 giây sau khi vào map rồi teleport đến chỗ tưới cây
 task.wait(2)
 humanoidRootPart.CFrame = CFrame.new(targetPosition)
-print("✅ Teleport đến vị trí tưới cây (camera cao hơn)!")
-
--- 📌 Chỉnh camera theo nhân vật nhưng cao hơn một chút
-local camera = game.Workspace.CurrentCamera
-camera.CameraType = Enum.CameraType.Scriptable -- Cho phép chỉnh camera
-camera.CFrame = humanoidRootPart.CFrame * CFrame.new(0, 5, 0) -- Đẩy camera lên cao hơn 5 đơn vị
+print("✅ Teleport đến vị trí tưới cây mà không ảnh hưởng đến camera!")
 
 -- 📌 Kiểm tra nếu nhân vật bị rớt khỏi map, tự động teleport về lại trước cổng
 task.spawn(function()
