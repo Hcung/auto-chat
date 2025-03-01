@@ -41,6 +41,33 @@ local camera = game.Workspace.CurrentCamera
 task.wait(0.5) -- Đợi một chút để tránh lỗi khi camera chưa load xong
 camera.CFrame = camera.CFrame * CFrame.new(0, 10, -10) -- Đẩy camera lên cao hơn 10 đơn vị và lùi ra sau 10 đơn vị
 
+-- 📌 Hàm tự động tưới cây (tưới mỗi cây 4 lần)
+local function waterPlants()
+    local plantPositions = {
+        Vector3.new(-452.69903564453125, 107.31900787353516, -1400.0970458984375),
+        Vector3.new(-435.25531005859375, 107.33667755126953, -1399.5416259765625),
+        Vector3.new(-435.50177001953125, 107.31939697265625, -1387.158447265625),
+        Vector3.new(-435.40069580078125, 107.31939697265625, -1412.1187744140625)
+    }
+
+    for _, pos in ipairs(plantPositions) do
+        for i = 1, 4 do -- Tưới 4 lần trước khi chuyển cây khác
+            local args = {
+                [1] = Ray.new(Vector3.new(-478.3576354980469, 109.90526580810547, -1400.040283203125), pos - Vector3.new(-478.3576354980469, 109.90526580810547, -1400.040283203125)),
+                [2] = pos
+            }
+            game:GetService("ReplicatedStorage").Network.Click:FireServer(unpack(args))
+            task.wait(0.5) -- Chờ 0.5 giây giữa mỗi lần click để tránh lag
+        end
+        print("🌱 Đã tưới xong 4 lần cho cây tại:", pos)
+    end
+    print("🌿 Đã tưới xong toàn bộ cây!")
+end
+
+-- 📌 Tự động tưới cây ngay khi teleport đến vị trí tưới
+task.wait(1)
+waterPlants()
+
 -- 📌 Kiểm tra nếu nhân vật bị rớt khỏi map, tự động teleport về lại trước cổng
 task.spawn(function()
     while task.wait(2) do -- Kiểm tra mỗi 2 giây
