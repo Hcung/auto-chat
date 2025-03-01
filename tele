@@ -1,0 +1,13 @@
+local player = game.Players.LocalPlayer
+local char = player.Character
+local root = char and char:FindFirstChild("HumanoidRootPart")
+
+if root then
+    -- Dịch chuyển nhân vật
+    root.CFrame = CFrame.new(-466.6715, 108.4234, -1399.1746)
+
+    -- Điều chỉnh góc nhìn camera
+    local camera = game.Workspace.CurrentCamera
+    camera.CameraType = Enum.CameraType.Scriptable -- Chuyển camera sang chế độ điều khiển bằng script
+    camera.CFrame = CFrame.new(root.Position) * CFrame.Angles(math.rad(-88.9319), math.rad(180), math.rad(180))
+end
