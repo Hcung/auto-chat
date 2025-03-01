@@ -2,10 +2,10 @@ local player = game.Players.LocalPlayer
 local character = player.Character or player.CharacterAdded:Wait()
 local humanoidRootPart = character:WaitForChild("HumanoidRootPart")
 
--- 📌 Cập nhật lại vị trí teleport (tọa độ mới)
+-- 📌 Tọa độ đích cần teleport đến
 local targetPosition = Vector3.new(-465.9693908691406, 108.42337036132812, -1399.500244140625)
 
--- 📌 Teleport nhân vật đến vị trí mong muốn (giữ nguyên góc nhìn)
-humanoidRootPart.Position = targetPosition
+-- 📌 Teleport nhân vật mà không thay đổi bất kỳ thông số nào của camera
+humanoidRootPart.CFrame = CFrame.new(targetPosition)
 
-print("✅ Đã teleport thành công!")
+print("✅ Teleport thành công mà không ảnh hưởng đến camera!")
