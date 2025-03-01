@@ -1,46 +1,22 @@
-local player = game.Players.LocalPlayer
-local character = player.Character or player.CharacterAdded:Wait()
-local hrp = character:WaitForChild("HumanoidRootPart")
+-- Script tự động tưới cây - Được tối ưu từ dữ liệu SimpleSpy
 
--- Lưu danh sách các cây tìm thấy trong game
-local foundPlants = {}
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local ClickEvent = ReplicatedStorage.Network.Click
 
--- Sự kiện khi nhấn chuột
-local UIS = game:GetService("UserInputService")
+local positions = {
+    {Ray.new(Vector3.new(-474.8656, 120.7166, -1398.889), Vector3.new(0.8773, -0.3779, -0.2959)), Vector3.new(-436.7917, 107.3194, -1411.1028)},
+    {Ray.new(Vector3.new(-474.8647, 120.7166, -1398.859), Vector3.new(0.9195, -0.3921, -0.0273)), Vector3.new(-436.4309, 107.3194, -1400.0068)},
+    {Ray.new(Vector3.new(-474.8637, 120.7164, -1398.826), Vector3.new(0.8861, -0.3763, 0.2706)), Vector3.new(-436.3113, 107.3194, -1387.7473)},
+    {Ray.new(Vector3.new(-474.8679, 120.7107, -1398.784), Vector3.new(0.7405, -0.3717, 0.5599)), Vector3.new(-442.7791, 107.3194, -1375.9210)},
+    {Ray.new(Vector3.new(-474.8787, 120.6989, -1398.763), Vector3.new(0.6071, -0.4288, 0.6690)), Vector3.new(-452.5352, 107.3194, -1375.7147)},
+    {Ray.new(Vector3.new(-474.8780, 120.7028, -1398.855), Vector3.new(0.8365, -0.5480, 0.0079)), Vector3.new(-450.6145, 107.3194, -1398.6876)},
+    {Ray.new(Vector3.new(-474.8736, 120.7099, -1398.934), Vector3.new(0.6988, -0.3801, -0.6059)), Vector3.new(-445.2339, 107.3194, -1423.1805)},
+    {Ray.new(Vector3.new(-474.8842, 120.6996, -1398.952), Vector3.new(0.5752, -0.4294, -0.6963)), Vector3.new(-453.6231, 107.3194, -1423.0344)},
+    {Ray.new(Vector3.new(-465.5558, 120.4885, -1388.113), Vector3.new(0.0203, -0.4132, -0.9104)), Vector3.new(-464.5254, 107.3194, -1423.4653)},
+    {Ray.new(Vector3.new(-465.2707, 119.8663, -1410.919), Vector3.new(0.0503, -0.4005, 0.9149)), Vector3.new(-463.2075, 107.3194, -1375.5383)}
+}
 
-local function getMousePosition()
-    local mouse = player:GetMouse()
-    return Vector3.new(mouse.Hit.p.X, mouse.Hit.p.Y, mouse.Hit.p.Z)
+for _, args in pairs(positions) do
+    ClickEvent:FireServer(unpack(args))
+    wait(0.5) -- Đợi 0.5 giây giữa mỗi lần tưới để tránh bị phát hiện spam
 end
-
--- Hàm in ra thông tin click chuột
-local function onClick()
-    local mousePosition = getMousePosition()
-    local cam = workspace.CurrentCamera
-    local direction = (mousePosition - cam.CFrame.Position).unit
-    
-    local ray = Ray.new(cam.CFrame.Position, direction * 500)
-    
-    print("\n🌱 **Tọa độ cây:**", mousePosition)
-    print("🎯 **Raycast Click:**", ray)
-    
-    table.insert(foundPlants, mousePosition)
-end
-
--- Lắng nghe sự kiện chuột trái
-UIS.InputBegan:Connect(function(input, gameProcessed)
-    if input.UserInputType == Enum.UserInputType.MouseButton1 then
-        onClick()
-    end
-end)
-
--- Di chuyển đến cây tiếp theo sau khi nhấn một phím (ví dụ: phím "N")
-UIS.InputBegan:Connect(function(input, gameProcessed)
-    if input.KeyCode == Enum.KeyCode.N then
-        if #foundPlants > 0 then
-            local nextPlant = table.remove(foundPlants, 1)
-            hrp.CFrame = CFrame.new(nextPlant)
-            print("🚀 **Di chuyển đến cây:**", nextPlant)
-        end
-    end
-end)
