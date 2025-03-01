@@ -32,8 +32,8 @@ local moveSteps = {
 
 for _, step in ipairs(moveSteps) do
     humanoid:MoveTo(step)
-    humanoid.MoveToFinished:Wait() -- Đợi nhân vật đi xong mỗi bước
-    task.wait(0.3) -- Chờ một chút để tránh lỗi dịch chuyển nhanh
+    humanoid.MoveToFinished:Wait()
+    task.wait(0.3)
 end
 
 print("🚶‍♂️ Đã đi vào trong map!")
@@ -43,25 +43,47 @@ task.wait(2)
 humanoidRootPart.CFrame = CFrame.new(targetPosition)
 print("✅ Teleport đến vị trí tưới cây!")
 
+-- 📌 Danh sách lệnh tưới cây mới
+local plantClickData = {
+    {
+        Ray.new(Vector3.new(-466.29901123046875, 109.88530731201172, -1393.56396484375), 
+                Vector3.new(0.8934198021888733, -0.2916709780693054, -0.3416564166545868)),
+        Vector3.new(-452.69903564453125, 106.51968383789062, -1398.7647705078125)
+    },
+    {
+        Ray.new(Vector3.new(-466.29779052734375, 109.897705078125, -1393.5908203125), 
+                Vector3.new(0.8309691548347473, -0.16818194091320038, -0.5302876830101013)),
+        Vector3.new(-438.2600402832031, 106.40351867675781, -1411.4832763671875)
+    },
+    {
+        Ray.new(Vector3.new(-466.2999572753906, 109.8988037109375, -1393.543212890625), 
+                Vector3.new(0.9663794040679932, -0.18920886516571045, -0.17410027980804443)),
+        Vector3.new(-438.2600402832031, 106.63575744628906, -1398.5948486328125)
+    },
+    {
+        Ray.new(Vector3.new(-466.30181884765625, 109.89935302734375, -1393.5018310546875), 
+                Vector3.new(0.9566954374313354, -0.18553197383880615, 0.22430308163166046)),
+        Vector3.new(-438.2600402832031, 106.73021697998047, -1386.92724609375)
+    },
+    {
+        Ray.new(Vector3.new(-466.30419921875, 109.89522552490234, -1393.4493408203125), 
+                Vector3.new(0.7737665772438049, -0.18679405748844147, 0.6053043007850647)),
+        Vector3.new(-444.5099792480469, 106.44223022460938, -1376.400146484375)
+    }
+}
+
 -- 📌 Hàm tự động tưới cây (mỗi cây 4 lần)
 local function waterPlants()
-    local plantPositions = {
-        Vector3.new(-452.69903564453125, 107.31900787353516, -1400.0970458984375),
-        Vector3.new(-435.25531005859375, 107.33667755126953, -1399.5416259765625),
-        Vector3.new(-435.50177001953125, 107.31939697265625, -1387.158447265625),
-        Vector3.new(-435.40069580078125, 107.31939697265625, -1412.1187744140625)
-    }
-
-    for _, pos in ipairs(plantPositions) do
+    for _, clickData in ipairs(plantClickData) do
         for i = 1, 4 do -- Tưới 4 lần trước khi chuyển cây khác
             local args = {
-                [1] = Ray.new(Vector3.new(-478.3576354980469, 109.90526580810547, -1400.040283203125), pos - Vector3.new(-478.3576354980469, 109.90526580810547, -1400.040283203125)),
-                [2] = pos
+                [1] = clickData[1], -- Ray
+                [2] = clickData[2]  -- Vị trí cây
             }
             game:GetService("ReplicatedStorage").Network.Click:FireServer(unpack(args))
             task.wait(0.5) -- Chờ 0.5 giây giữa mỗi lần click
         end
-        print("🌱 Đã tưới xong 4 lần cho cây tại:", pos)
+        print("🌱 Đã tưới xong 4 lần cho cây tại:", clickData[2])
     end
     print("🌿 Đã tưới xong toàn bộ cây!")
 end
