@@ -1,28 +1,16 @@
 local player = game.Players.LocalPlayer
+local character = player.Character or player.CharacterAdded:Wait()
+local humanoidRootPart = character:WaitForChild("HumanoidRootPart")
+
+-- 📌 Cập nhật lại vị trí teleport (tọa độ mới)
+local targetPosition = Vector3.new(-465.9693908691406, 108.42337036132812, -1399.500244140625)
+
+-- 📌 Camera Lock (từ Dark Dex)
 local camera = workspace.CurrentCamera
+camera.CameraType = Enum.CameraType.Scriptable
+camera.CFrame = CFrame.new(473.877365, 116.042824, -1396.968994)
 
--- Tọa độ vị trí HumanoidRootPart (từ hình ảnh của bạn)
-local targetPosition = Vector3.new(-466.007, 108.423, -1399.17) 
+-- 📌 Teleport nhân vật đến vị trí mong muốn
+humanoidRootPart.CFrame = CFrame.new(targetPosition)
 
--- Góc quay theo ảnh (X, Y, Z)
-local targetRotation = CFrame.Angles(math.rad(-84.1), math.rad(-90), 0) 
-
--- Hàm khóa camera
-local function lockCamera()
-    camera.CameraType = Enum.CameraType.Scriptable
-    camera.CFrame = CFrame.new(targetPosition) * targetRotation
-    print("✅ Camera locked to minigame view!")
-end
-
--- Khi nhân vật xuất hiện (từ đầu game)
-player.CharacterAdded:Connect(function()
-    task.wait(1) -- Đợi load xong
-    lockCamera()
-end)
-
--- Khi teleport vào minigame (theo vị trí thay đổi)
-player.Character.HumanoidRootPart:GetPropertyChangedSignal("Position"):Connect(function()
-    if (player.Character.HumanoidRootPart.Position - targetPosition).magnitude < 5 then
-        lockCamera()
-    end
-end)
+print("✅ Đã teleport và lock camera thành công!")
