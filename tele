@@ -6,7 +6,7 @@ local humanoid = character:WaitForChild("Humanoid")
 -- 📌 Tọa độ điểm trước cổng vào map
 local startPosition = Vector3.new(184.9508819580078, 22.715150833129883, 1995.9241943359375)
 
--- 📌 Tọa độ điểm tưới cây (Cập nhật tọa độ mới)
+-- 📌 Tọa độ sau khi đã vào map (sẽ teleport thẳng)
 local targetPosition = Vector3.new(-450.8958740234375, 108.41856384277344, -1392.82421875)
 
 -- 📌 Hàm teleport nhân vật đến trước cổng
@@ -20,10 +20,10 @@ end
 -- 📌 Teleport ngay khi vào game đến trước cổng map
 teleportToStart()
 
--- 📌 Chờ 1 giây rồi di chuyển vào map từ từ
+-- 📌 Chờ 1 giây rồi bắt đầu đi bộ vào map
 task.wait(1)
 
-print("🚶‍♂️ Đang di chuyển vào map...")
+print("🚶‍♂️ Đang đi bộ vào map...")
 local moveSteps = {
     Vector3.new(184.9508819580078, 22.715150833129883, 1993),
     Vector3.new(184.9508819580078, 22.715150833129883, 1990),
@@ -38,17 +38,12 @@ for _, step in ipairs(moveSteps) do
     task.wait(0.3) -- Chờ một chút để tránh lỗi dịch chuyển nhanh
 end
 
-print("🚶‍♂️ Nhân vật đã vào map!")
+print("🚶‍♂️ Đã đi vào trong map!")
 
 -- 📌 Chờ 2 giây sau khi vào map rồi teleport đến chỗ tưới cây
 task.wait(2)
 humanoidRootPart.CFrame = CFrame.new(targetPosition)
 print("✅ Teleport đến vị trí tưới cây!")
-
--- 📌 Chỉnh camera cao lên và lùi ra sau một chút để tránh bị che khuất
-local camera = game.Workspace.CurrentCamera
-task.wait(0.5)
-camera.CFrame = camera.CFrame * CFrame.new(0, 10, -10)
 
 -- 📌 Hàm tự động tưới cây (mỗi cây 4 lần)
 local function waterPlants()
