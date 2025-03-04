@@ -1,22 +1,63 @@
--- Script tự động tưới cây - Được tối ưu từ dữ liệu SimpleSpy
+getgenv().AutoWater = true
 
-local ReplicatedStorage = game:GetService("ReplicatedStorage")
-local ClickEvent = ReplicatedStorage.Network.Click
-
-local positions = {
-    {Ray.new(Vector3.new(-474.8656, 120.7166, -1398.889), Vector3.new(0.8773, -0.3779, -0.2959)), Vector3.new(-436.7917, 107.3194, -1411.1028)},
-    {Ray.new(Vector3.new(-474.8647, 120.7166, -1398.859), Vector3.new(0.9195, -0.3921, -0.0273)), Vector3.new(-436.4309, 107.3194, -1400.0068)},
-    {Ray.new(Vector3.new(-474.8637, 120.7164, -1398.826), Vector3.new(0.8861, -0.3763, 0.2706)), Vector3.new(-436.3113, 107.3194, -1387.7473)},
-    {Ray.new(Vector3.new(-474.8679, 120.7107, -1398.784), Vector3.new(0.7405, -0.3717, 0.5599)), Vector3.new(-442.7791, 107.3194, -1375.9210)},
-    {Ray.new(Vector3.new(-474.8787, 120.6989, -1398.763), Vector3.new(0.6071, -0.4288, 0.6690)), Vector3.new(-452.5352, 107.3194, -1375.7147)},
-    {Ray.new(Vector3.new(-474.8780, 120.7028, -1398.855), Vector3.new(0.8365, -0.5480, 0.0079)), Vector3.new(-450.6145, 107.3194, -1398.6876)},
-    {Ray.new(Vector3.new(-474.8736, 120.7099, -1398.934), Vector3.new(0.6988, -0.3801, -0.6059)), Vector3.new(-445.2339, 107.3194, -1423.1805)},
-    {Ray.new(Vector3.new(-474.8842, 120.6996, -1398.952), Vector3.new(0.5752, -0.4294, -0.6963)), Vector3.new(-453.6231, 107.3194, -1423.0344)},
-    {Ray.new(Vector3.new(-465.5558, 120.4885, -1388.113), Vector3.new(0.0203, -0.4132, -0.9104)), Vector3.new(-464.5254, 107.3194, -1423.4653)},
-    {Ray.new(Vector3.new(-465.2707, 119.8663, -1410.919), Vector3.new(0.0503, -0.4005, 0.9149)), Vector3.new(-463.2075, 107.3194, -1375.5383)}
-}
-
-for _, args in pairs(positions) do
-    ClickEvent:FireServer(unpack(args))
-    wait(0.5) -- Đợi 0.5 giây giữa mỗi lần tưới để tránh bị phát hiện spam
+function WaterFlowers()
+    local Character = game.Players.LocalPlayer.Character
+    local HumanoidRootPart = Character.HumanoidRootPart
+    
+    -- Danh sách tọa độ chính xác các luống hoa
+    local FlowerBeds = {
+        Vector3.new(-451.4178466796875, 110.42041778564453, -1399.5296630859375),
+        Vector3.new(-436.63690185546875, 110.47799682617188, -1399.4844970703125),
+        Vector3.new(-436.3950500488281, 110.40913391113281, -1411.697021484375),
+        Vector3.new(-436.2469177246094, 110.36154174804688, -1386.9052734375),
+        Vector3.new(-442.45147705078125, 110.3801498413086, -1376.0428466796875),
+        Vector3.new(-453.3274230957031, 110.4179458618164, -1375.5592041015625),
+        Vector3.new(-462.90460205078125, 110.35554504394531, -1375.8819580078125),
+        Vector3.new(-444.5462951660156, 110.34841918945312, -1422.6566162109375),
+        Vector3.new(-454.5690002441406, 110.40670776367188, -1423.0079345703125),
+        Vector3.new(-463.489013671875, 110.42855834960938, -1423.17602539062)
+    }
+    
+    while getgenv().AutoWater do
+        for _, bedPosition in ipairs(FlowerBeds) do
+            -- Di chuyển đến từng luống hoa
+            HumanoidRootPart.CFrame = CFrame.new(bedPosition)
+            
+            -- Chờ 1 giây để load
+            wait(1)
+            
+            -- Tưới nước
+            game:GetService("ReplicatedStorage").Events.WaterFlower:FireServer()
+            
+            -- Chờ giữa các lần tưới
+            wait(0.5)
+        end
+        
+        -- Chờ 1 khoảng thời gian trước khi tưới lại
+        wait(5)
+    end
 end
+
+-- Nút bật/tắt auto
+local ScreenGui = Instance.new("ScreenGui")
+ScreenGui.Parent = game.Players.LocalPlayer.PlayerGui
+
+local Button = Instance.new("TextButton")
+Button.Size = UDim2.new(0, 100, 0, 50)
+Button.Position = UDim2.new(0.5, -50, 0.9, 0)
+Button.Text = "Auto Water"
+Button.BackgroundColor3 = Color3.new(0, 1, 0)
+Button.Parent = ScreenGui
+
+Button.MouseButton1Click:Connect(function()
+    getgenv().AutoWater = not getgenv().AutoWater
+    
+    if getgenv().AutoWater then
+        Button.Text = "Stop Auto"
+        Button.BackgroundColor3 = Color3.new(1, 0, 0)
+        WaterFlowers()
+    else
+        Button.Text = "Auto Water"
+        Button.BackgroundColor3 = Color3.new(0, 1, 0)
+    end
+end)
