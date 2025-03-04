@@ -1,68 +1,48 @@
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
-local Workspace = game:GetService("Workspace")
 
 local Player = Players.LocalPlayer
 local Character = Player.Character or Player.CharacterAdded:Wait()
 local HumanoidRootPart = Character:WaitForChild("HumanoidRootPart")
 
--- Danh sách tọa độ các chậu hoa
+-- Danh sách tọa độ chậu hoa
 local FlowerBeds = {
-    {Position = Vector3.new(-451.4178466796875, 110.42041778564453, -1399.5296630859375), Offset = Vector3.new(0, 1, 0)},
-    {Position = Vector3.new(-436.63690185546875, 110.47799682617188, -1399.4844970703125), Offset = Vector3.new(0, 1, 0)},
-    {Position = Vector3.new(-436.3950500488281, 110.40913391113281, -1411.697021484375), Offset = Vector3.new(0, 1, 0)},
-    {Position = Vector3.new(-436.2469177246094, 110.36154174804688, -1386.9052734375), Offset = Vector3.new(0, 1, 0)},
-    {Position = Vector3.new(-442.45147705078125, 110.3801498413086, -1376.0428466796875), Offset = Vector3.new(0, 1, 0)},
-    {Position = Vector3.new(-453.3274230957031, 110.4179458618164, -1375.5592041015625), Offset = Vector3.new(0, 1, 0)},
-    {Position = Vector3.new(-462.90460205078125, 110.35554504394531, -1375.8819580078125), Offset = Vector3.new(0, 1, 0)},
-    {Position = Vector3.new(-444.5462951660156, 110.34841918945312, -1422.6566162109375), Offset = Vector3.new(0, 1, 0)},
-    {Position = Vector3.new(-454.5690002441406, 110.40670776367188, -1423.0079345703125), Offset = Vector3.new(0, 1, 0)},
-    {Position = Vector3.new(-463.489013671875, 110.42855834960938, -1423.17602539062), Offset = Vector3.new(0, 1, 0)}
+    Vector3.new(-451.4178466796875, 110.42041778564453, -1399.5296630859375),
+    Vector3.new(-436.63690185546875, 110.47799682617188, -1399.4844970703125),
+    Vector3.new(-436.3950500488281, 110.40913391113281, -1411.697021484375),
+    Vector3.new(-436.2469177246094, 110.36154174804688, -1386.9052734375),
+    Vector3.new(-442.45147705078125, 110.3801498413086, -1376.0428466796875),
+    Vector3.new(-453.3274230957031, 110.4179458618164, -1375.5592041015625),
+    Vector3.new(-462.90460205078125, 110.35554504394531, -1375.8819580078125),
+    Vector3.new(-444.5462951660156, 110.34841918945312, -1422.6566162109375),
+    Vector3.new(-454.5690002441406, 110.40670776367188, -1423.0079345703125),
+    Vector3.new(-463.489013671875, 110.42855834960938, -1423.17602539062)
 }
 
 local IsAutoWatering = false
 
-local function FindNearestFlowerPot(position)
-    local nearestPot = nil
-    local shortestDistance = math.huge
-    
-    for _, pot in ipairs(Workspace.Map.FlowerGarden:GetDescendants()) do
-        if pot:IsA("BasePart") and pot.Name:find("Pot") then
-            local distance = (pot.Position - position).Magnitude
-            if distance < shortestDistance then
-                shortestDistance = distance
-                nearestPot = pot
-            end
-        end
-    end
-    
-    return nearestPot
-end
-
 local function WaterFlowers()
     while IsAutoWatering do
-        for _, bedData in ipairs(FlowerBeds) do
+        for _, bedPosition in ipairs(FlowerBeds) do
             if not IsAutoWatering then break end
             
-            -- Di chuyển đến vị trí
-            local targetPosition = bedData.Position + bedData.Offset
-            HumanoidRootPart.CFrame = CFrame.new(targetPosition)
-            task.wait(0.5)
+            -- Di chuyển đến vị trí chậu
+            HumanoidRootPart.CFrame = CFrame.new(bedPosition)
+            task.wait(0.3)
             
-            -- Tìm chậu hoa gần nhất
-            local nearestPot = FindNearestFlowerPot(targetPosition)
+            -- Thực hiện tưới nước
+            -- Sử dụng event chính xác từ ReplicatedStorage
+            local waterEvent = ReplicatedStorage.Events.GardenWater or 
+                               ReplicatedStorage.Events.WaterFlowers or 
+                               ReplicatedStorage.Events.WaterFlower
             
-            if nearestPot then
-                -- Click vào chậu hoa
-                fireclickdetector(nearestPot.ClickDetector)
-                
-                -- Gọi event tưới nước
+            if waterEvent then
                 pcall(function()
-                    ReplicatedStorage.Events.WaterFlower:FireServer(nearestPot)
+                    waterEvent:FireServer()
                 end)
             end
             
-            task.wait(0.3)
+            task.wait(0.2)
         end
         
         task.wait(3)
@@ -93,3 +73,5 @@ Button.MouseButton1Click:Connect(function()
         Button.BackgroundColor3 = Color3.fromRGB(0, 255, 0)
     end
 end)
+
+print("Auto Water Script Loaded Successfully")
