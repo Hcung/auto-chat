@@ -1,57 +1,73 @@
 local Players = game:GetService("Players")
+local VirtualInputManager = game:GetService("VirtualInputManager")
+local UserInputService = game:GetService("UserInputService")
 local Player = Players.LocalPlayer
-local Character = Player.Character or Player.CharacterAdded:Wait()
-local HumanoidRootPart = Character:WaitForChild("HumanoidRootPart")
+local Mouse = Player:GetMouse()
+local Camera = workspace.CurrentCamera
 
--- Danh sách tọa độ chậu hoa 
--- LƯU Ý: Bạn PHẢI thay đổi những tọa độ này cho phù hợp với map của bạn
+-- Danh sách tọa độ chậu
 local FlowerBeds = {
-    Vector3.new(-451.4178, 110.4204, -1399.5296),
-    Vector3.new(-436.6369, 110.4779, -1399.4844),
-    Vector3.new(-436.3950, 110.4091, -1411.6970),
-    Vector3.new(-436.2469, 110.3615, -1386.9052),
-    Vector3.new(-442.4514, 110.3801, -1376.0428),
-    Vector3.new(-453.3274, 110.4179, -1375.5592),
-    Vector3.new(-462.9046, 110.3555, -1375.8819),
-    Vector3.new(-444.5462, 110.3484, -1422.6566),
-    Vector3.new(-454.5690, 110.4067, -1423.0079),
-    Vector3.new(-463.4890, 110.4285, -1423.1760)
+    Vector3.new(-438.2600, 106.8225, -1411.4207),
+    Vector3.new(-438.2600, 106.3749, -1398.6719),
+    Vector3.new(-438.2600, 106.4455, -1387.7559),
+    Vector3.new(-444.5101, 106.6654, -1376.4619)
 }
 
 local IsAutoWatering = false
 
--- Hàm di chuyển và click vào chậu
-local function WaterFlower(bedPosition)
-    -- Di chuyển nhân vật đến vị trí
-    HumanoidRootPart.CFrame = CFrame.new(bedPosition + Vector3.new(0, 3, 0))
-    task.wait(0.2)
+-- Hàm di chuyển con trỏ chuột một cách tự nhiên
+local function SmoothMouseMove(targetScreenPos)
+    local currentMousePos = UserInputService:GetMouseLocation()
+    local steps = 15  -- Số bước di chuyển
     
-    -- Click vào vị trí
-    game:GetService("VirtualInputManager"):SendMouseButtonEvent(
-        workspace.CurrentCamera:WorldToScreenPoint(bedPosition).X, 
-        workspace.CurrentCamera:WorldToScreenPoint(bedPosition).Y, 
-        0, true, nil, 0
-    )
-    task.wait(0.1)
-    game:GetService("VirtualInputManager"):SendMouseButtonEvent(
-        workspace.CurrentCamera:WorldToScreenPoint(bedPosition).X, 
-        workspace.CurrentCamera:WorldToScreenPoint(bedPosition).Y, 
-        0, false, nil, 0
-    )
-    task.wait(0.2)
+    for i = 1, steps do
+        local t = i / steps
+        local smoothX = currentMousePos.X + (targetScreenPos.X - currentMousePos.X) * t
+        local smoothY = currentMousePos.Y + (targetScreenPos.Y - currentMousePos.Y) * t
+        
+        VirtualInputManager:SendMouseMoveEvent(smoothX, smoothY, workspace.CurrentCamera)
+        task.wait(0.01)  -- Thời gian giữa các bước di chuyển
+    end
 end
 
--- Hàm chính tự động tưới
+-- Hàm click chuột một cách tự nhiên
+local function NaturalMouseClick(screenPos)
+    -- Di chuyển con trỏ chuột một cách mượt mà
+    SmoothMouseMove(screenPos)
+    
+    -- Click chuột với độ trễ ngẫu nhiên
+    task.wait(math.random(50, 150) / 1000)
+    
+    -- Thực hiện click
+    VirtualInputManager:SendMouseButtonEvent(screenPos.X, screenPos.Y, 0, true, nil, 0)
+    task.wait(0.01)
+    VirtualInputManager:SendMouseButtonEvent(screenPos.X, screenPos.Y, 0, false, nil, 0)
+end
+
+-- Hàm chính để tưới cây
 local function AutoWaterFlowers()
     while IsAutoWatering do
         for _, bedPosition in ipairs(FlowerBeds) do
             if not IsAutoWatering then break end
             
-            pcall(function()
-                WaterFlower(bedPosition)
-            end)
+            -- Chuyển đổi toạ độ thế giới sang toạ độ màn hình
+            local screenPos = Camera:WorldToScreenPoint(bedPosition)
+            
+            -- Thêm độ ngẫu nhiên để tránh việc click y hệt
+            screenPos = Vector2.new(
+                screenPos.X + math.random(-5, 5), 
+                screenPos.Y + math.random(-5, 5)
+            )
+            
+            -- Thực hiện click
+            NaturalMouseClick(screenPos)
+            
+            -- Độ trễ ngẫu nhiên giữa các lần click
+            task.wait(math.random(200, 500) / 1000)
         end
-        task.wait(1)
+        
+        -- Độ trễ giữa các vòng lặp
+        task.wait(math.random(1000, 2000) / 1000)
     end
 end
 
@@ -80,4 +96,4 @@ Button.MouseButton1Click:Connect(function()
     end
 end)
 
-print("Auto Water Script for Pet Simulator 99 Loaded Successfully")
+print("Auto Water Script Loaded Successfully")
