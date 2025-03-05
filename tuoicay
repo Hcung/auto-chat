@@ -1,57 +1,61 @@
 local Players = game:GetService("Players")
-local ReplicatedStorage = game:GetService("ReplicatedStorage")
-local UserInputService = game:GetService("UserInputService")
-
 local Player = Players.LocalPlayer
 local Character = Player.Character or Player.CharacterAdded:Wait()
 local HumanoidRootPart = Character:WaitForChild("HumanoidRootPart")
 
--- Danh sách tọa độ chậu hoa
+-- Danh sách tọa độ chậu hoa 
+-- LƯU Ý: Bạn PHẢI thay đổi những tọa độ này cho phù hợp với map của bạn
 local FlowerBeds = {
-    Vector3.new(-451.4178466796875, 110.42041778564453, -1399.5296630859375),
-    Vector3.new(-436.63690185546875, 110.47799682617188, -1399.4844970703125),
-    Vector3.new(-436.3950500488281, 110.40913391113281, -1411.697021484375),
-    Vector3.new(-436.2469177246094, 110.36154174804688, -1386.9052734375),
-    Vector3.new(-442.45147705078125, 110.3801498413086, -1376.0428466796875),
-    Vector3.new(-453.3274230957031, 110.4179458618164, -1375.5592041015625),
-    Vector3.new(-462.90460205078125, 110.35554504394531, -1375.8819580078125),
-    Vector3.new(-444.5462951660156, 110.34841918945312, -1422.6566162109375),
-    Vector3.new(-454.5690002441406, 110.40670776367188, -1423.0079345703125),
-    Vector3.new(-463.489013671875, 110.42855834960938, -1423.17602539062)
+    Vector3.new(-451.4178, 110.4204, -1399.5296),
+    Vector3.new(-436.6369, 110.4779, -1399.4844),
+    Vector3.new(-436.3950, 110.4091, -1411.6970),
+    Vector3.new(-436.2469, 110.3615, -1386.9052),
+    Vector3.new(-442.4514, 110.3801, -1376.0428),
+    Vector3.new(-453.3274, 110.4179, -1375.5592),
+    Vector3.new(-462.9046, 110.3555, -1375.8819),
+    Vector3.new(-444.5462, 110.3484, -1422.6566),
+    Vector3.new(-454.5690, 110.4067, -1423.0079),
+    Vector3.new(-463.4890, 110.4285, -1423.1760)
 }
 
 local IsAutoWatering = false
 
-local function SimulateMouseClick(position)
-    -- Di chuyển con trỏ chuột
-    UserInputService.MouseMoved:Fire(position)
+-- Hàm di chuyển và click vào chậu
+local function WaterFlower(bedPosition)
+    -- Di chuyển nhân vật đến vị trí
+    HumanoidRootPart.CFrame = CFrame.new(bedPosition + Vector3.new(0, 3, 0))
+    task.wait(0.2)
     
-    -- Giả lập click chuột trái
-    UserInputService:SendMouseButtonEvent(position.X, position.Y, 0, true, nil, 0)
+    -- Click vào vị trí
+    game:GetService("VirtualInputManager"):SendMouseButtonEvent(
+        workspace.CurrentCamera:WorldToScreenPoint(bedPosition).X, 
+        workspace.CurrentCamera:WorldToScreenPoint(bedPosition).Y, 
+        0, true, nil, 0
+    )
     task.wait(0.1)
-    UserInputService:SendMouseButtonEvent(position.X, position.Y, 0, false, nil, 0)
+    game:GetService("VirtualInputManager"):SendMouseButtonEvent(
+        workspace.CurrentCamera:WorldToScreenPoint(bedPosition).X, 
+        workspace.CurrentCamera:WorldToScreenPoint(bedPosition).Y, 
+        0, false, nil, 0
+    )
+    task.wait(0.2)
 end
 
-local function WaterFlowers()
+-- Hàm chính tự động tưới
+local function AutoWaterFlowers()
     while IsAutoWatering do
         for _, bedPosition in ipairs(FlowerBeds) do
             if not IsAutoWatering then break end
             
-            -- Di chuyển nhân vật đến vị trí chậu
-            HumanoidRootPart.CFrame = CFrame.new(bedPosition)
-            task.wait(0.3)
-            
-            -- Giả lập click chuột trái vào vị trí chậu
-            SimulateMouseClick(bedPosition)
-            
-            task.wait(0.2)
+            pcall(function()
+                WaterFlower(bedPosition)
+            end)
         end
-        
-        task.wait(3)
+        task.wait(1)
     end
 end
 
--- Tạo GUI
+-- Tạo giao diện người dùng
 local ScreenGui = Instance.new("ScreenGui")
 ScreenGui.Parent = Player.PlayerGui
 
@@ -62,18 +66,18 @@ Button.Text = "Bắt Đầu Tưới"
 Button.BackgroundColor3 = Color3.fromRGB(0, 255, 0)
 Button.Parent = ScreenGui
 
--- Sự kiện nút
+-- Xử lý sự kiện nút bấm
 Button.MouseButton1Click:Connect(function()
     IsAutoWatering = not IsAutoWatering
     
     if IsAutoWatering then
         Button.Text = "Dừng Tưới"
         Button.BackgroundColor3 = Color3.fromRGB(255, 0, 0)
-        task.spawn(WaterFlowers)
+        task.spawn(AutoWaterFlowers)
     else
         Button.Text = "Bắt Đầu Tưới"
         Button.BackgroundColor3 = Color3.fromRGB(0, 255, 0)
     end
 end)
 
-print("Auto Water Script Loaded Successfully")
+print("Auto Water Script for Pet Simulator 99 Loaded Successfully")
