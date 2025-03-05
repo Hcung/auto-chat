@@ -1,6 +1,6 @@
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
-local Workspace = game:GetService("Workspace")
+local UserInputService = game:GetService("UserInputService")
 
 local Player = Players.LocalPlayer
 local Character = Player.Character or Player.CharacterAdded:Wait()
@@ -22,43 +22,27 @@ local FlowerBeds = {
 
 local IsAutoWatering = false
 
-local function FindWaterEvent()
-    -- Thử tìm event tưới nước
-    local possibleEventNames = {
-        "GardenWater", 
-        "WaterFlowers", 
-        "WaterFlower", 
-        "Water"
-    }
+local function SimulateMouseClick(position)
+    -- Di chuyển con trỏ chuột
+    UserInputService.MouseMoved:Fire(position)
     
-    for _, eventName in ipairs(possibleEventNames) do
-        local event = ReplicatedStorage.Events:FindFirstChild(eventName)
-        if event then return event end
-    end
-    
-    return nil
+    -- Giả lập click chuột trái
+    UserInputService:SendMouseButtonEvent(position.X, position.Y, 0, true, nil, 0)
+    task.wait(0.1)
+    UserInputService:SendMouseButtonEvent(position.X, position.Y, 0, false, nil, 0)
 end
 
 local function WaterFlowers()
-    -- Tìm event tưới nước
-    local waterEvent = FindWaterEvent()
-    if not waterEvent then 
-        print("Không tìm thấy event tưới nước")
-        return 
-    end
-
     while IsAutoWatering do
         for _, bedPosition in ipairs(FlowerBeds) do
             if not IsAutoWatering then break end
             
-            -- Di chuyển đến vị trí chậu
+            -- Di chuyển nhân vật đến vị trí chậu
             HumanoidRootPart.CFrame = CFrame.new(bedPosition)
             task.wait(0.3)
             
-            -- Thực hiện tưới nước
-            pcall(function()
-                waterEvent:FireServer()
-            end)
+            -- Giả lập click chuột trái vào vị trí chậu
+            SimulateMouseClick(bedPosition)
             
             task.wait(0.2)
         end
