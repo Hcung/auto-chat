@@ -1,0 +1,243 @@
+import cv2
+import numpy as np
+import pyautogui
+import time
+import os
+from PIL import ImageGrab
+import logging
+
+# Set up logging
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(message)s')
+logger = logging.getLogger(__name__)
+
+class MillionaireRaceBot:
+    def __init__(self):
+        # Load reference images
+        self.coin_vii_template = cv2.imread('coin_vii_book.png', cv2.IMREAD_COLOR)
+        self.next_room_button = cv2.imread('next_room_button.png', cv2.IMREAD_COLOR)
+        self.leave_button = cv2.imread('leave_button.png', cv2.IMREAD_COLOR)
+        
+        # Check if templates were loaded successfully
+        if self.coin_vii_template is None:
+            logger.error("Failed to load Coin VII book template. Make sure 'coin_vii_book.png' exists in the working directory.")
+            raise FileNotFoundError("Coin VII book template not found")
+            
+        if self.next_room_button is None or self.leave_button is None:
+            logger.warning("Navigation button templates missing. Manual coordinate clicks will be used instead.")
+        
+        # Configuration
+        self.confidence_threshold = 0.7  # Minimum confidence for image recognition
+        self.scan_interval = 0.5  # Time between scans in seconds
+        self.target_coin_vii_count = 25  # Required number of Coin VII books
+        
+        # Initialize state
+        self.current_room = 1
+        self.total_rooms_checked = 0
+        
+    def capture_screen(self):
+        """Capture the current screen as an OpenCV image"""
+        screen = np.array(ImageGrab.grab())
+        return cv2.cvtColor(screen, cv2.COLOR_RGB2BGR)
+    
+    def find_template(self, image, template, threshold=None):
+        """Find template in image and return locations and confidence scores"""
+        if template is None:
+            return []
+            
+        if threshold is None:
+            threshold = self.confidence_threshold
+            
+        # Convert both to grayscale for better matching
+        image_gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+        template_gray = cv2.cvtColor(template, cv2.COLOR_BGR2GRAY)
+        
+        # Use template matching
+        result = cv2.matchTemplate(image_gray, template_gray, cv2.TM_CCOEFF_NORMED)
+        
+        # Get all matches above threshold
+        locations = np.where(result >= threshold)
+        
+        # Combine the locations with their confidence scores
+        matches = []
+        for pt in zip(*locations[::-1]):
+            matches.append((pt, result[pt[1], pt[0]]))
+            
+        # Remove overlapping matches
+        filtered_matches = self.filter_overlapping_matches(matches, template.shape[1], template.shape[0])
+        
+        return filtered_matches
+    
+    def filter_overlapping_matches(self, matches, template_width, template_height):
+        """Filter out overlapping matches, keeping the highest confidence match"""
+        if not matches:
+            return []
+            
+        # Sort by confidence (highest first)
+        matches.sort(key=lambda x: x[1], reverse=True)
+        
+        filtered = []
+        for match in matches:
+            pt, conf = match
+            x, y = pt
+            
+            # Check if this match overlaps with any already in the filtered list
+            overlaps = False
+            for f_match in filtered:
+                f_pt, _ = f_match
+                f_x, f_y = f_pt
+                
+                # If centers are close, consider it an overlap
+                if abs(x - f_x) < template_width // 2 and abs(y - f_y) < template_height // 2:
+                    overlaps = True
+                    break
+                    
+            if not overlaps:
+                filtered.append(match)
+                
+        return filtered
+    
+    def count_coin_vii_books(self, screen):
+        """Count the number of Coin VII books in the current screen"""
+        matches = self.find_template(screen, self.coin_vii_template)
+        book_count = len(matches)
+        
+        # For debugging, draw rectangles around found books
+        debug_image = screen.copy()
+        for match in matches:
+            pt, conf = match
+            x, y = pt
+            w, h = self.coin_vii_template.shape[1], self.coin_vii_template.shape[0]
+            cv2.rectangle(debug_image, (x, y), (x + w, y + h), (0, 255, 0), 2)
+            cv2.putText(debug_image, f"{conf:.2f}", (x, y - 10), 
+                        cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 2)
+        
+        # Save debug image
+        cv2.imwrite(f"debug_room_{self.current_room}.jpg", debug_image)
+        
+        return book_count
+    
+    def click_next_room(self):
+        """Click the next room button"""
+        if self.next_room_button is not None:
+            screen = self.capture_screen()
+            matches = self.find_template(screen, self.next_room_button)
+            
+            if matches:
+                pt, _ = matches[0]
+                x, y = pt
+                w, h = self.next_room_button.shape[1], self.next_room_button.shape[0]
+                click_x, click_y = x + w // 2, y + h // 2
+                
+                logger.info(f"Clicking next room button at ({click_x}, {click_y})")
+                pyautogui.click(click_x, click_y)
+                return True
+            else:
+                logger.warning("Next room button not found, using fallback position")
+        
+        # Fallback: click predetermined position for next room button
+        # These coordinates should be adjusted based on your screen resolution
+        next_button_x, next_button_y = 1200, 650
+        logger.info(f"Clicking fallback next room position at ({next_button_x}, {next_button_y})")
+        pyautogui.click(next_button_x, next_button_y)
+        return True
+    
+    def click_leave(self):
+        """Click the leave button to exit the race"""
+        if self.leave_button is not None:
+            screen = self.capture_screen()
+            matches = self.find_template(screen, self.leave_button)
+            
+            if matches:
+                pt, _ = matches[0]
+                x, y = pt
+                w, h = self.leave_button.shape[1], self.leave_button.shape[0]
+                click_x, click_y = x + w // 2, y + h // 2
+                
+                logger.info(f"Clicking leave button at ({click_x}, {click_y})")
+                pyautogui.click(click_x, click_y)
+                return True
+            else:
+                logger.warning("Leave button not found, using fallback position")
+                
+        # Fallback: click predetermined position for leave button
+        # These coordinates should be adjusted based on your screen resolution
+        leave_button_x, leave_button_y = 800, 700
+        logger.info(f"Clicking fallback leave position at ({leave_button_x}, {leave_button_y})")
+        pyautogui.click(leave_button_x, leave_button_y)
+        return True
+    
+    def run(self):
+        """Main bot loop"""
+        logger.info("Starting Millionaire Race Bot")
+        logger.info(f"Looking for {self.target_coin_vii_count} Coin VII books")
+        
+        try:
+            while True:
+                # Capture the current screen
+                screen = self.capture_screen()
+                
+                # Count Coin VII books in the current room
+                book_count = self.count_coin_vii_books(screen)
+                logger.info(f"Room {self.current_room}: Found {book_count} Coin VII books")
+                
+                # Check if we've found enough books
+                if book_count >= self.target_coin_vii_count:
+                    logger.info(f"Success! Found {book_count} Coin VII books in Room {self.current_room}")
+                    
+                    # Enter this room
+                    self.click_next_room()
+                    logger.info("Entering the room with Coin VII books")
+                    time.sleep(3)  # Wait for room transition
+                    
+                    # Leave the race
+                    logger.info("Objective completed. Leaving the race")
+                    self.click_leave()
+                    break
+                else:
+                    # Move to the next room
+                    logger.info(f"Not enough Coin VII books, moving to next room")
+                    self.click_next_room()
+                    self.current_room += 1
+                    self.total_rooms_checked += 1
+                    time.sleep(2)  # Wait for room transition
+                
+                # Safety check - if we've checked too many rooms, something might be wrong
+                if self.total_rooms_checked > 100:
+                    logger.warning("Checked 100 rooms without finding target. Stopping to prevent infinite loop.")
+                    break
+                    
+                # Brief pause between iterations
+                time.sleep(self.scan_interval)
+                
+        except KeyboardInterrupt:
+            logger.info("Bot stopped by user")
+        except Exception as e:
+            logger.error(f"Error occurred: {str(e)}")
+            raise
+        finally:
+            logger.info(f"Bot finished. Checked {self.total_rooms_checked} rooms.")
+
+def setup_bot():
+    """Create template images if they don't exist"""
+    # This function would normally be used to set up the bot
+    # For a complete solution, you would need to provide the template images
+    
+    # If template images don't exist, create placeholder instructions
+    if not os.path.exists('coin_vii_book.png'):
+        logger.warning("Template image 'coin_vii_book.png' not found!")
+        logger.info("You need to create a template image of the Coin VII book.")
+        logger.info("Take a screenshot of the Coin VII book in-game and save it as 'coin_vii_book.png'")
+
+if __name__ == "__main__":
+    # Check for required template images
+    setup_bot()
+    
+    # Give user time to switch to the game window
+    logger.info("Starting bot in 5 seconds. Switch to Pet Simulator 99 now!")
+    for i in range(5, 0, -1):
+        logger.info(f"{i}...")
+        time.sleep(1)
+    
+    # Create and run the bot
+    bot = MillionaireRaceBot()
+    bot.run()
