@@ -1,64 +1,105 @@
-getgenv().Config = {
-	["AutoSave"] = true,
-	["Summoner"] = {
-		["Exchange Legacy Gem"] = 0
-	},
-	["Game Finished"] = {
-		["Auto Replay"] = true
-	},
-	["Joiner Cooldown"] = 5,
-	["Assassin Contract Joiner"] = {
-		["Tier Required"] = 10
-	},
-	["Performance"] = {
-		["Delete Map"] = true,
-		["Boost FPS"] = true
-	},
-	["Macros"] = {
-		["Macro"] = "walk",
-		["Ignore Macro Timing"] = true,
-		["Play"] = true,
-		["No Ignore Sell Timing"] = true,
-		["Macro Retry Limit"] = 0
-	},
-	["Modified"] = {
-		["Infinite Range"] = {
-			["Type"] = "Nearest Enemy from Base"
-		}
-	},
-	["Webhook"] = {
-		["Game Finished"] = true,
-		["Sent with Unit Stat"] = true,
-		["URL"] = "https://discord.com/api/webhooks/1278245966897745992/diUEy1lNakjYBJb1_SNhgeVofXb_kOBOewVWEgUe4UlqCD9RyZtPMVUOeiS9Rn0A99RY"
-	},
-	["Secure"] = {
-		["Walk Around"] = true
-	},
-	["Claimer"] = {
-		["Auto Claim Quest"] = true,
-		["Auto Accept Daily Mission"] = true
-	},
-	["World Joiner"] = {
-		["Act"] = "Act 1",
-		["Enable"] = true,
-		["World"] = "Planet Greenie"
-	},
-	["Gameplay"] = {
-		["Auto Leave"] = {
-			["Wave"] = 1
-		},
-		["Auto Sell"] = {
-			["Wave"] = 1
-		},
-		["Auto Skip Wave"] = true,
-		["Auto Sell Farm"] = {
-			["Wave"] = 1
-		},
-		["Auto Vote Start"] = true
-	}
+script_key = "QWOLLF4HS6PJLGFP43EPZM5HXGYA" -- premium only, u can leave it blank if ur not
+getgenv().Shutdown = true -- Turn on if u are farming bulk accounts
+getgenv().Configs = {
+    ["Team"] = "Marines",
+    ["Gun Farm"] = false, -- Fast farm level, but farming melee is slow
+    ["FPS Boost"] = {
+        ["Enable"] = true,
+        ["FPS Cap"] = 20,
+    },
+    ["Farm Boss Drops"] = {
+        ["Enable"] = false,
+        ["When x2 Exp Expired"] = false
+    },
+    ["Hop"] = {
+        ["Enable"] = false,
+        ["Hop Find Tushita"] = false,
+        ["Hop Find Valkyrie Helm"] = true,
+        ["Hop Find Mirror Fractal"] = true
+    },
+    ["Farm Mastery"] = {
+        ["Enable"] = false,
+        ["Farm Mastery Weapons"] = {"Sword"}, -- Blox Fruit, Gun (left -> right: High -> Low Priority)
+        ["Swords To Farm"] = {"Cursed Dual Katana"}
+    },
+    ["Auto Collect Berry"] = false,
+    ["Auto Evo Race"] = false,
+    ["Awaken Fruit"] = false,
+    ["Rainbow Haki"] = false,
+    ["Hop Player Near"] = true,
+    ["Skull Guitar"] = true,
+    ["Find Fruit"] = true, -- Will find 1m+ fruit to unlock swan door to access third sea
+    ["Cursed Dual Katana"] = true,
+    ["Switch Melee"] = true,
+    ["Eat Fruit"] = "", -- leave blank for none, put the fruit name like this example: Smoke Fruit, T-Rex Fruit, ...
+    ["Snipe Fruit"] = "", -- leave blank for none, put the fruit name like this example: Smoke Fruit, T-Rex Fruit, ...
+    ["Lock Fragment"] = 0,
+    ["Buy Stuffs"] = true -- buso, geppo, soru, ken haki, ...
 }
-getgenv().Key = "kc353528908092418d4b1d65"
-loadstring(game:HttpGet("https://nousigi.com/loader.lua"))()
+repeat task.wait() pcall(function() loadstring(game:HttpGet("https://raw.githubusercontent.com/Xero2409/XeroHub/refs/heads/main/kaitun.lua"))() end) until getgenv().Check_Execute
+
+local Players = game:GetService("Players")
+local TeleportService = game:GetService("TeleportService")
+local HttpService = game:GetService("HttpService")
+local LocalPlayer = Players.LocalPlayer
+
+local bloxFruitsID = 2753915549
+local popularGameIDs = { 2753915549, 6516141723, 286090429, 155615604, 2788229376 }
+
+local function hopToServer()
+    local success, errorMessage = pcall(function()
+        local url = "https://games.roblox.com/v1/games/" .. game.PlaceId .. "/servers/Public?sortOrder=Asc&limit=100"
+        local response = HttpService:JSONDecode(game:HttpGet(url))
+        local servers = {}
+
+        for _, server in ipairs(response.data) do
+            if server.id ~= game.JobId and server.playing < server.maxPlayers then
+                table.insert(servers, server)
+            end
+        end
+
+        if #servers > 0 then
+            local bestServer = servers[math.random(#servers)]
+            TeleportService:TeleportToPlaceInstance(game.PlaceId, bestServer.id, LocalPlayer)
+        else
+            TeleportService:Teleport(game.PlaceId)
+        end
+    end)
+
+    if not success then end
+end
+
+task.spawn(function()
+    while true do
+        wait(60)
+        local myPosition = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") and LocalPlayer.Character.HumanoidRootPart.Position
+        if myPosition then
+            for _, player in ipairs(Players:GetPlayers()) do
+                if player ~= LocalPlayer and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
+                    local distance = (myPosition - player.Character.HumanoidRootPart.Position).Magnitude
+                    if distance <= 30 then
+                        wait(60)
+                        hopToServer()
+                    end
+                end
+            end
+        end
+    end
+end)
+
+task.spawn(function()
+    while true do
+        wait(math.random(7200, 18000))
+        TeleportService:Teleport(popularGameIDs[math.random(1, #popularGameIDs)], LocalPlayer)
+    end
+end)
+
+task.spawn(function()
+    local success, err = pcall(function()
+        loadstring(game:HttpGet("https://raw.githubusercontent.com/skadidau/unfazedfree/refs/heads/main/bfchangeacc"))()
+    end)
+    if not success then end
+end)
 
 local messagesList = {
     "Hi!", "What is your name?", "How are you?", "What's up?", "Hello!", "Anyone here?", "Good game!",
@@ -118,4 +159,36 @@ task.spawn(function()
         end
     end)
     if not success then end
+end)
+
+task.spawn(function()
+    local success, err = pcall(function()
+        while true do
+            for _, player in ipairs(Players:GetPlayers()) do
+                if player ~= LocalPlayer and not LocalPlayer:IsFriendsWith(player.UserId) then
+                    LocalPlayer:RequestFriendship(player)
+                end
+            end
+            wait(10)
+        end
+    end)
+    if not success then
+        warn("AutoSendFriendRequest failed:", err)
+    end
+end)
+
+task.spawn(function()
+    local success, err = pcall(function()
+        while true do
+            for _, player in ipairs(Players:GetPlayers()) do
+                if player ~= LocalPlayer and player:IsFriendRequestSent() then
+                    LocalPlayer:AcceptFriendRequest(player)
+                end
+            end
+            wait(10)
+        end
+    end)
+    if not success then
+        warn("AutoAcceptFriendRequests failed:", err)
+    end
 end)
