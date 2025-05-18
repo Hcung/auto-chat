@@ -1,0 +1,269 @@
+local Players = game:GetService("Players")
+local LocalPlayer = Players.LocalPlayer
+local Character = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
+local HumanoidRootPart = Character:WaitForChild("HumanoidRootPart")
+local RunService = game:GetService("RunService")
+
+-- Cấu hình
+local FLYING_SPEED = 50 -- Điều chỉnh tốc độ bay
+local DISTANCE_THRESHOLD = 5 -- Khoảng cách đến mục tiêu để coi là đã đến nơi
+
+-- Biến
+local flyConnection = nil
+local targetPosition = nil
+local isFlying = false
+
+-- Hàm bắt đầu bay đến vị trí
+local function flyToPosition(position)
+    if isFlying then return end
+    
+    targetPosition = position
+    isFlying = true
+    
+    -- Tạo kết nối để cập nhật vị trí mỗi khung hình
+    flyConnection = RunService.Heartbeat:Connect(function(dt)
+        if not Character or not HumanoidRootPart or not targetPosition then
+            if flyConnection then
+                flyConnection:Disconnect()
+                flyConnection = nil
+            end
+            isFlying = false
+            return
+        end
+        
+        local currentPos = HumanoidRootPart.Position
+        local direction = (targetPosition - currentPos).Unit
+        local distance = (targetPosition - currentPos).Magnitude
+        
+        -- Kiểm tra xem đã đủ gần mục tiêu chưa
+        if distance < DISTANCE_THRESHOLD then
+            print("Đã đến mục tiêu!")
+            if flyConnection then
+                flyConnection:Disconnect()
+                flyConnection = nil
+            end
+            isFlying = false
+            return
+        end
+        
+        -- Tính toán di chuyển khung hình này
+        local moveStep = direction * FLYING_SPEED * dt
+        
+        -- Ngăn chặn di chuyển quá xa
+        if moveStep.Magnitude > distance then
+            moveStep = direction * distance
+        end
+        
+        -- Di chuyển nhân vật
+        HumanoidRootPart.CFrame = CFrame.new(currentPos + moveStep, currentPos + moveStep + direction)
+    end)
+end
+end
+
+-- Hàm dừng bay
+local function stopFlying()
+    if flyConnection then
+        flyConnection:Disconnect()
+        flyConnection = nil
+    end
+    isFlying = false
+    print("Đã dừng bay")
+end
+
+-- Tạo giao diện đơn giản để điều khiển bay
+local ScreenGui = Instance.new("ScreenGui")
+ScreenGui.Parent = LocalPlayer:WaitForChild("PlayerGui")
+ScreenGui.ResetOnSpawn = false
+
+local Frame = Instance.new("Frame")
+Frame.Size = UDim2.new(0, 250, 0, 150)
+Frame.Position = UDim2.new(0.8, -125, 0.3, -75)
+Frame.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+Frame.BorderSizePixel = 2
+Frame.BorderColor3 = Color3.fromRGB(0, 170, 255)
+Frame.Parent = ScreenGui
+
+local Title = Instance.new("TextLabel")
+Title.Size = UDim2.new(1, 0, 0, 30)
+Title.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+Title.TextColor3 = Color3.fromRGB(255, 255, 255)
+Title.Font = Enum.Font.SourceSansBold
+Title.Text = "Công Cụ Bay Tự Động"
+Title.TextSize = 18
+Title.Parent = Frame
+
+-- Tạo trường nhập cho tọa độ X, Y, Z
+local inputFields = {}
+local labels = {"X:", "Y:", "Z:"}
+
+for i, label in ipairs(labels) do
+    local LabelText = Instance.new("TextLabel")
+    LabelText.Size = UDim2.new(0.2, 0, 0, 30)
+    LabelText.Position = UDim2.new(0, 10, 0, 30 + (i * 30))
+    LabelText.BackgroundTransparency = 1
+    LabelText.TextColor3 = Color3.fromRGB(255, 255, 255)
+    LabelText.Font = Enum.Font.SourceSans
+    LabelText.Text = label
+    LabelText.TextSize = 16
+    LabelText.Parent = Frame
+    
+    local InputField = Instance.new("TextBox")
+    InputField.Size = UDim2.new(0.7, 0, 0, 25)
+    InputField.Position = UDim2.new(0.25, 0, 0, 32 + (i * 30))
+    InputField.BackgroundColor3 = Color3.fromRGB(70, 70, 70)
+    InputField.TextColor3 = Color3.fromRGB(255, 255, 255)
+    InputField.Font = Enum.Font.SourceSans
+    InputField.Text = "0"
+    InputField.TextSize = 16
+    InputField.Parent = Frame
+    
+    inputFields[i] = InputField
+end
+
+-- Tạo nút Bay và Dừng
+local FlyButton = Instance.new("TextButton")
+FlyButton.Size = UDim2.new(0.45, 0, 0, 30)
+FlyButton.Position = UDim2.new(0.05, 0, 0, 125)
+FlyButton.BackgroundColor3 = Color3.fromRGB(0, 170, 0)
+FlyButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+FlyButton.Font = Enum.Font.SourceSansBold
+FlyButton.Text = "BAY"
+FlyButton.TextSize = 16
+FlyButton.Parent = Frame
+
+local StopButton = Instance.new("TextButton")
+StopButton.Size = UDim2.new(0.45, 0, 0, 30)
+StopButton.Position = UDim2.new(0.5, 0, 0, 125)
+StopButton.BackgroundColor3 = Color3.fromRGB(170, 0, 0)
+StopButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+StopButton.Font = Enum.Font.SourceSansBold
+StopButton.Text = "DỪNG"
+StopButton.TextSize = 16
+StopButton.Parent = Frame
+
+-- Thêm tọa độ đã lưu từ các hình ảnh
+local PresetFrame = Instance.new("Frame")
+PresetFrame.Size = UDim2.new(0, 250, 0, 110)
+PresetFrame.Position = UDim2.new(0.8, -125, 0.3, 85)
+PresetFrame.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+PresetFrame.BorderSizePixel = 2
+PresetFrame.BorderColor3 = Color3.fromRGB(0, 170, 255)
+PresetFrame.Parent = ScreenGui
+
+local PresetTitle = Instance.new("TextLabel")
+PresetTitle.Size = UDim2.new(1, 0, 0, 30)
+PresetTitle.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+PresetTitle.TextColor3 = Color3.fromRGB(255, 255, 255)
+PresetTitle.Font = Enum.Font.SourceSansBold
+PresetTitle.Text = "Vị Trí Đã Lưu"
+PresetTitle.TextSize = 18
+PresetTitle.Parent = PresetFrame
+
+-- Tọa độ đã lưu từ hình ảnh
+local presets = {
+    ["Vị Trí Ban Đầu"] = Vector3.new(-669.236, 232.488, -117.360),
+    ["Vị Trí Cần Đến"] = Vector3.new(-501.442, 245.848, -270.152)
+}
+
+local presetButtons = {}
+local i = 0
+for name, coords in pairs(presets) do
+    local PresetButton = Instance.new("TextButton")
+    PresetButton.Size = UDim2.new(0.9, 0, 0, 30)
+    PresetButton.Position = UDim2.new(0.05, 0, 0, 35 + (i * 35))
+    PresetButton.BackgroundColor3 = Color3.fromRGB(0, 100, 170)
+    PresetButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+    PresetButton.Font = Enum.Font.SourceSansBold
+    PresetButton.Text = name
+    PresetButton.TextSize = 16
+    PresetButton.Parent = PresetFrame
+    
+    -- Thiết lập sự kiện click cho nút này
+    PresetButton.MouseButton1Click:Connect(function()
+        inputFields[1].Text = tostring(coords.X)
+        inputFields[2].Text = tostring(coords.Y)
+        inputFields[3].Text = tostring(coords.Z)
+        
+        flyToPosition(coords)
+    end)
+    
+    i = i + 1
+end
+
+-- Thiết lập sự kiện click cho các nút
+FlyButton.MouseButton1Click:Connect(function()
+    local x = tonumber(inputFields[1].Text) or 0
+    local y = tonumber(inputFields[2].Text) or 0
+    local z = tonumber(inputFields[3].Text) or 0
+    
+    local targetPos = Vector3.new(x, y, z)
+    flyToPosition(targetPos)
+end)
+
+StopButton.MouseButton1Click:Connect(stopFlying)
+
+-- Làm cho giao diện có thể kéo thả
+local UserInputService = game:GetService("UserInputService")
+local dragging
+local dragInput
+local dragStart
+local startPos
+
+local function updateDrag(input)
+    local delta = input.Position - dragStart
+    Frame.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
+    PresetFrame.Position = UDim2.new(Frame.Position.X.Scale, Frame.Position.X.Offset, Frame.Position.Y.Scale, Frame.Position.Y.Offset + 155)
+end
+
+Frame.InputBegan:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+        dragging = true
+        dragStart = input.Position
+        startPos = Frame.Position
+        
+        input.Changed:Connect(function()
+            if input.UserInputState == Enum.UserInputState.End then
+                dragging = false
+            end
+        end)
+    end
+end)
+
+Frame.InputChanged:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then
+        dragInput = input
+    end
+end)
+
+UserInputService.InputChanged:Connect(function(input)
+    if input == dragInput and dragging then
+        updateDrag(input)
+    end
+end)
+
+-- Xử lý khi nhân vật hồi sinh
+LocalPlayer.CharacterAdded:Connect(function(newCharacter)
+    Character = newCharacter
+    HumanoidRootPart = Character:WaitForChild("HumanoidRootPart")
+    
+    -- Nếu chúng ta đang bay trước đó, tiếp tục bay đến cùng một vị trí
+    if isFlying and targetPosition then
+        local savedPosition = targetPosition
+        stopFlying()
+        -- Đợi một thời gian ngắn để nhân vật ổn định
+        task.wait(0.5)
+        flyToPosition(savedPosition)
+    end
+end)
+
+-- Thông điệp hướng dẫn
+local function showInstructions()
+    print("=== Hướng Dẫn Công Cụ Bay Tự Động ===")
+    print("1. Nhập tọa độ X, Y, Z hoặc sử dụng các nút vị trí đã lưu")
+    print("2. Nhấp 'BAY' để tự động bay đến vị trí đó")
+    print("3. Nhấp 'DỪNG' để hủy bay")
+    print("4. Các vị trí đã lưu sẵn có sẵn để di chuyển nhanh")
+    print("================================")
+end
+
+showInstructions()
