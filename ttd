@@ -1,269 +1,568 @@
+wait(12)
+print("Mamay")
+-- Synapse X LocalScript (trusted tween teleport)
 local Players = game:GetService("Players")
-local LocalPlayer = Players.LocalPlayer
-local Character = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
-local HumanoidRootPart = Character:WaitForChild("HumanoidRootPart")
-local RunService = game:GetService("RunService")
+local TweenService = game:GetService("TweenService")
+local player = Players.LocalPlayer
+local char = player.Character or player.CharacterAdded:Wait()
+local root = char:WaitForChild("HumanoidRootPart")
 
--- Cấu hình
-local FLYING_SPEED = 50 -- Điều chỉnh tốc độ bay
-local DISTANCE_THRESHOLD = 5 -- Khoảng cách đến mục tiêu để coi là đã đến nơi
+-- CFrame đích bạn đưa:
+local targetCFrame = CFrame.new(-630.27, 234.00, -261.44, 0.85, 0.00, -0.52, 0.00, 1.00, 0.00, 0.52, -0.00, 0.85)
 
--- Biến
-local flyConnection = nil
-local targetPosition = nil
-local isFlying = false
+-- Tùy chọn thêm: Vô hiệu hoá physics trong khi tween
+root.Anchored = true
 
--- Hàm bắt đầu bay đến vị trí
-local function flyToPosition(position)
-    if isFlying then return end
-    
-    targetPosition = position
-    isFlying = true
-    
-    -- Tạo kết nối để cập nhật vị trí mỗi khung hình
-    flyConnection = RunService.Heartbeat:Connect(function(dt)
-        if not Character or not HumanoidRootPart or not targetPosition then
-            if flyConnection then
-                flyConnection:Disconnect()
-                flyConnection = nil
-            end
-            isFlying = false
-            return
-        end
-        
-        local currentPos = HumanoidRootPart.Position
-        local direction = (targetPosition - currentPos).Unit
-        local distance = (targetPosition - currentPos).Magnitude
-        
-        -- Kiểm tra xem đã đủ gần mục tiêu chưa
-        if distance < DISTANCE_THRESHOLD then
-            print("Đã đến mục tiêu!")
-            if flyConnection then
-                flyConnection:Disconnect()
-                flyConnection = nil
-            end
-            isFlying = false
-            return
-        end
-        
-        -- Tính toán di chuyển khung hình này
-        local moveStep = direction * FLYING_SPEED * dt
-        
-        -- Ngăn chặn di chuyển quá xa
-        if moveStep.Magnitude > distance then
-            moveStep = direction * distance
-        end
-        
-        -- Di chuyển nhân vật
-        HumanoidRootPart.CFrame = CFrame.new(currentPos + moveStep, currentPos + moveStep + direction)
-    end)
-end
-end
+-- Tạo tween di chuyển
+local tweenInfo = TweenInfo.new(2, Enum.EasingStyle.Sine, Enum.EasingDirection.Out)
+local tween = TweenService:Create(root, tweenInfo, {CFrame = targetCFrame})
+tween:Play()
 
--- Hàm dừng bay
-local function stopFlying()
-    if flyConnection then
-        flyConnection:Disconnect()
-        flyConnection = nil
-    end
-    isFlying = false
-    print("Đã dừng bay")
-end
+-- Chờ tween xong rồi bỏ anchor
+tween.Completed:Wait()
+root.Anchored = false
 
--- Tạo giao diện đơn giản để điều khiển bay
-local ScreenGui = Instance.new("ScreenGui")
-ScreenGui.Parent = LocalPlayer:WaitForChild("PlayerGui")
-ScreenGui.ResetOnSpawn = false
+getgenv().Config = {
+	["JoinFailsafe"] = false,
+	["AutoSave"] = true,
+	["SelectPVPMacro"] = {
 
-local Frame = Instance.new("Frame")
-Frame.Size = UDim2.new(0, 250, 0, 150)
-Frame.Position = UDim2.new(0.8, -125, 0.3, -75)
-Frame.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
-Frame.BorderSizePixel = 2
-Frame.BorderColor3 = Color3.fromRGB(0, 170, 255)
-Frame.Parent = ScreenGui
-
-local Title = Instance.new("TextLabel")
-Title.Size = UDim2.new(1, 0, 0, 30)
-Title.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
-Title.TextColor3 = Color3.fromRGB(255, 255, 255)
-Title.Font = Enum.Font.SourceSansBold
-Title.Text = "Công Cụ Bay Tự Động"
-Title.TextSize = 18
-Title.Parent = Frame
-
--- Tạo trường nhập cho tọa độ X, Y, Z
-local inputFields = {}
-local labels = {"X:", "Y:", "Z:"}
-
-for i, label in ipairs(labels) do
-    local LabelText = Instance.new("TextLabel")
-    LabelText.Size = UDim2.new(0.2, 0, 0, 30)
-    LabelText.Position = UDim2.new(0, 10, 0, 30 + (i * 30))
-    LabelText.BackgroundTransparency = 1
-    LabelText.TextColor3 = Color3.fromRGB(255, 255, 255)
-    LabelText.Font = Enum.Font.SourceSans
-    LabelText.Text = label
-    LabelText.TextSize = 16
-    LabelText.Parent = Frame
-    
-    local InputField = Instance.new("TextBox")
-    InputField.Size = UDim2.new(0.7, 0, 0, 25)
-    InputField.Position = UDim2.new(0.25, 0, 0, 32 + (i * 30))
-    InputField.BackgroundColor3 = Color3.fromRGB(70, 70, 70)
-    InputField.TextColor3 = Color3.fromRGB(255, 255, 255)
-    InputField.Font = Enum.Font.SourceSans
-    InputField.Text = "0"
-    InputField.TextSize = 16
-    InputField.Parent = Frame
-    
-    inputFields[i] = InputField
-end
-
--- Tạo nút Bay và Dừng
-local FlyButton = Instance.new("TextButton")
-FlyButton.Size = UDim2.new(0.45, 0, 0, 30)
-FlyButton.Position = UDim2.new(0.05, 0, 0, 125)
-FlyButton.BackgroundColor3 = Color3.fromRGB(0, 170, 0)
-FlyButton.TextColor3 = Color3.fromRGB(255, 255, 255)
-FlyButton.Font = Enum.Font.SourceSansBold
-FlyButton.Text = "BAY"
-FlyButton.TextSize = 16
-FlyButton.Parent = Frame
-
-local StopButton = Instance.new("TextButton")
-StopButton.Size = UDim2.new(0.45, 0, 0, 30)
-StopButton.Position = UDim2.new(0.5, 0, 0, 125)
-StopButton.BackgroundColor3 = Color3.fromRGB(170, 0, 0)
-StopButton.TextColor3 = Color3.fromRGB(255, 255, 255)
-StopButton.Font = Enum.Font.SourceSansBold
-StopButton.Text = "DỪNG"
-StopButton.TextSize = 16
-StopButton.Parent = Frame
-
--- Thêm tọa độ đã lưu từ các hình ảnh
-local PresetFrame = Instance.new("Frame")
-PresetFrame.Size = UDim2.new(0, 250, 0, 110)
-PresetFrame.Position = UDim2.new(0.8, -125, 0.3, 85)
-PresetFrame.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
-PresetFrame.BorderSizePixel = 2
-PresetFrame.BorderColor3 = Color3.fromRGB(0, 170, 255)
-PresetFrame.Parent = ScreenGui
-
-local PresetTitle = Instance.new("TextLabel")
-PresetTitle.Size = UDim2.new(1, 0, 0, 30)
-PresetTitle.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
-PresetTitle.TextColor3 = Color3.fromRGB(255, 255, 255)
-PresetTitle.Font = Enum.Font.SourceSansBold
-PresetTitle.Text = "Vị Trí Đã Lưu"
-PresetTitle.TextSize = 18
-PresetTitle.Parent = PresetFrame
-
--- Tọa độ đã lưu từ hình ảnh
-local presets = {
-    ["Vị Trí Ban Đầu"] = Vector3.new(-669.236, 232.488, -117.360),
-    ["Vị Trí Cần Đến"] = Vector3.new(-501.442, 245.848, -270.152)
+	},
+	["SellRarities"] = {
+		["Legendary"] = false,
+		["Basic"] = false,
+		["Epic"] = false,
+		["Mythic"] = false,
+		["Uncommon"] = false,
+		["Rare"] = false
+	},
+	["DelayReplay"] = 5,
+	["WH_MatchComplete"] = true,
+	["AutoSkip"] = true,
+	["AutoClaimQuest"] = true,
+	["TPLobbyIfPlayer"] = false,
+	["BlackScreen"] = false,
+	["WH_MailSent"] = true,
+	["Summon10"] = true,
+	["SelectMacro"] = "frozen",
+	["ALFS_DelayHop"] = 30,
+	["AutoJoinMatch"] = false,
+	["PlaceFailsafe"] = true,
+	["SelectTroop"] = {
+		["AlphaSpeakerman"] = false,
+		["TitanBunnyCameraman"] = false,
+		["ComputerSpeakerman"] = false,
+		["KneeSurgeryClockman"] = false,
+		["DiceCameraman"] = false,
+		["TitanHeartMan"] = false,
+		["PineappleSpeakerman"] = false,
+		["SkibidiClaus"] = false,
+		["BeretCameraman"] = false,
+		["JetpackCameraman"] = false,
+		["StriderToiletUnit"] = false,
+		["SneakySpeakerman"] = false,
+		["UpgradedCamerawoman"] = false,
+		["TitanInfectedSpeakerman"] = false,
+		["DrillHelicopter"] = false,
+		["LargeLaserCameraman"] = false,
+		["TitanAlienMan"] = false,
+		["CameramanCar"] = false,
+		["ChaoticCameraman"] = false,
+		["HourglassSpeakerman"] = false,
+		["ThumbUpSpeakerMan"] = false,
+		["TurkeySpeakerman"] = false,
+		["SigmaDrillman"] = false,
+		["SamuraiTVMan"] = false,
+		["Drillman"] = false,
+		["SpeedySpeakerman"] = false,
+		["UpgradedRefinedDrillman"] = false,
+		["FrostDJSpeakerman"] = false,
+		["TitanMotherboard"] = false,
+		["UpgradedTitanClockman"] = false,
+		["DarkPrinterMan"] = false,
+		["IceCreamSpeakerman"] = false,
+		["CuckooClockman"] = false,
+		["LargeTurkeySpeakerman"] = false,
+		["MysticalTitan"] = false,
+		["SpeakerSpider"] = false,
+		["TitanPencilWoman"] = false,
+		["CameraHelicopter"] = false,
+		["LuckyCameraman"] = false,
+		["NinjaCameraman"] = false,
+		["TitanDiceMan"] = false,
+		["MafiaToiletUnit"] = false,
+		["TitanTurkeyMan"] = false,
+		["InfectedPlungerMan"] = false,
+		["HeartbrokenTVMan"] = false,
+		["Tralala"] = false,
+		["ShieldCameraman"] = false,
+		["RobotCameraman"] = false,
+		["RocketCameraman"] = false,
+		["LargeFireworkCameraman"] = false,
+		["SpeakerRepairDrone"] = false,
+		["DJTVMan"] = false,
+		["TitanForcefieldWoman"] = false,
+		["ScientistMech"] = false,
+		["UpgradedTitanDrillMan"] = false,
+		["SinisterTitanTVMan"] = false,
+		["CarSpeakerman"] = false,
+		["GunPencilman"] = false,
+		["BrownSuitCameraman"] = false,
+		["CatToilet"] = false,
+		["ChocolateCameraman"] = false,
+		["ScientistCameraman1337"] = false,
+		["DetectiveCameraman"] = false,
+		["MilitaryMutantToiletGirl"] = false,
+		["CamoToiletUnit"] = false,
+		["StaticSpeakerman"] = false,
+		["OrbitalCamera"] = false,
+		["ExecutionerTitanSpeakerman"] = false,
+		["TitanSwatCameraman"] = false,
+		["FrostTitanSpeakerman"] = false,
+		["CalendarSpeakerman"] = false,
+		["PumpkinFarmer"] = false,
+		["TitanCloverMan"] = false,
+		["DualBladeBunnyman"] = false,
+		["InfectedToilet"] = false,
+		["MicrowaveMan"] = false,
+		["CopCameraman"] = false,
+		["UpgradedTitanCameraman"] = false,
+		["BossToilet5"] = false,
+		["ToxicUpgradedTitanCameraman"] = false,
+		["ScientistCameraman"] = false,
+		["TitanSandMan"] = false,
+		["StarfallTVMan"] = false,
+		["DarkCamerawoman"] = false,
+		["RamenChefTVMan"] = false,
+		["Cameraman"] = false,
+		["ArachnidMilitantToilet"] = false,
+		["ArmoredDrillman"] = false,
+		["LargeFanman"] = false,
+		["SpeakerVan"] = false,
+		["PendulumClockman"] = false,
+		["FireworkCameraman"] = false,
+		["TitanSamuraiCameraman"] = false,
+		["CheeseDrillman"] = false,
+		["SpiderTV"] = false,
+		["LeprechaunCameraman"] = false,
+		["GladiatorSpeakerman"] = false,
+		["TurkeyDrillman"] = false,
+		["Speakerman"] = false,
+		["HealerTVWoman"] = false,
+		["SpeakerHelicopter"] = false,
+		["OctopusVIP"] = false,
+		["AirplaneToiletUnit"] = false,
+		["CrossSpeakerwoman"] = false,
+		["CupidCamerawoman"] = false,
+		["TitanFireworkMan"] = false,
+		["KingDrillman"] = false,
+		["ZombieTitanTVMan"] = false,
+		["TitanCactusMan"] = false,
+		["StopwatchCameraman"] = false,
+		["AquatitanSpeakerman"] = false,
+		["ForcefieldCameraman"] = false,
+		["TVWoman"] = false,
+		["AssassinDrillman"] = false,
+		["ScarySpeakerman"] = false,
+		["HunterCameraman"] = false,
+		["BonecaAmbalabu"] = false,
+		["Fanman"] = false,
+		["CarrotCameraman"] = false,
+		["ShogunCameraman"] = false,
+		["SunglassesSpeakerman"] = false,
+		["LaserCameramanCar"] = false,
+		["SummonerPencilman"] = false,
+		["LifeguardSpeakerman"] = false,
+		["SushiSpeakerman"] = false,
+		["ZombieHordeCameraman"] = false,
+		["AlarmClockman"] = false,
+		["BarbarianLargeTVMan"] = false,
+		["SwordClockman"] = false,
+		["PrinterHenchman"] = false,
+		["CameraAttackHelicopter"] = false,
+		["RobberCameraman"] = false,
+		["CorporalDrillman"] = false,
+		["SeagullCameraman"] = false,
+		["ShrimpSpeakerman"] = false,
+		["TitanTVMan"] = false,
+		["RocketLauncherToiletUnit"] = false,
+		["TitanRainbowClockman"] = false,
+		["ShamrockShieldSpeakerman"] = false,
+		["SamuraiCameraman"] = false,
+		["HeadlessSpeakerman"] = false,
+		["BuffMutantToilet"] = false,
+		["ZombieToilet"] = false,
+		["LargeHeartSpeakerman"] = false,
+		["SpeakerwomansRoseFarm"] = false,
+		["HamburgerTVMan"] = false,
+		["FrozenSpeakerman"] = false,
+		["InfectedFutureClockman"] = false,
+		["JetpackSpeakerman"] = false,
+		["TitanPrinterMan"] = false,
+		["MaceCameraman"] = false,
+		["MagicianSpeakerman"] = false,
+		["SpeakerHenchman"] = false,
+		["TitanPresentMan"] = false,
+		["ScientistToiletUnit"] = false,
+		["SwatMutantToilet"] = false,
+		["LoveBladeCameraman"] = false,
+		["KingpinTitanCameraman"] = false,
+		["CarrotFarmerBunnyman"] = false,
+		["MutantToiletUnit"] = false,
+		["TitanTitanMan"] = false,
+		["FutureCameraman"] = false,
+		["WitchCamerawoman"] = false,
+		["GreenLaserCameraman"] = false,
+		["BaldToilet"] = false,
+		["RedLaserCameraman"] = false,
+		["MewingTVMan"] = false,
+		["UpgradedLargeLaserCameraman"] = false,
+		["AngelicGuardian"] = false,
+		["PresentSpeakerman"] = false,
+		["ClockSpider"] = false,
+		["LargeScientistCameraman"] = false,
+		["CameraMothership"] = false,
+		["OctopusCameraman"] = false,
+		["AxeUpgradedTitanSpeakerman"] = false,
+		["DJSpeakerman"] = false,
+		["CreatorPencilman"] = false,
+		["SantaTVMan"] = false,
+		["FallenClockman"] = false,
+		["TitanMeatballMan"] = false,
+		["EvilTvMan"] = false,
+		["DJToilet"] = false,
+		["CandyCaneCameraman"] = false,
+		["TitanSnowman"] = false,
+		["LargePrinterMan"] = false,
+		["DarkBlueSuitCameraman"] = false,
+		["TitanMogman"] = false,
+		["ScientistDrillman"] = false,
+		["UpgradedMechCameraman"] = false,
+		["TitanOctopusMan"] = false,
+		["AstroGunCameraman"] = false,
+		["GrimReaperman"] = false,
+		["UpgradedStriderToilet"] = false,
+		["SparklerCameraman"] = false,
+		["GingerbreadHouse"] = false,
+		["TracksuitCameraman"] = false,
+		["BombClockman"] = false,
+		["SurferTVMan"] = false,
+		["SmoothToilet"] = false,
+		["BeachCameraman"] = false,
+		["ElectricTVMan"] = false,
+		["GravityGunCameraman"] = false,
+		["ChiefDrillman"] = false,
+		["TVHenchman"] = false,
+		["InfluencerCameraman"] = false,
+		["DarkSpeakerman"] = false,
+		["CorruptedCameraman"] = false,
+		["EggLauncherCameraman"] = false,
+		["MonsterSpeakerman"] = false,
+		["TitanFanman"] = false,
+		["EmperorCameraman"] = false,
+		["LayeredDrillman"] = false,
+		["VampireCameraman"] = false,
+		["TitanTrapMan"] = false,
+		["Pool"] = false,
+		["CrabCameraman"] = false,
+		["BassMicrophoneMan"] = false,
+		["FlamethrowerCameraman"] = false,
+		["TitanBeachBallMan"] = false,
+		["SawUpgradedTitanCameraman"] = false,
+		["EngineerCameraman"] = false,
+		["DualBladeSamuraiCameraman"] = false,
+		["SwordLargeCameraman"] = false,
+		["GoldenFutureLargeClockman"] = false,
+		["SpearSpeakerman"] = false,
+		["JuggernautTitanTVMan"] = false,
+		["TurkeyHerderSpeakerman"] = false,
+		["SniperCameraman"] = false,
+		["TitanDrillMan"] = false,
+		["DementedTitanCameraman"] = false,
+		["Camerawoman"] = false,
+		["RefinedDrillman"] = false,
+		["HackedJuggernautTitan"] = false,
+		["CoconutCameraman"] = false,
+		["SinisterTitanClockman"] = false,
+		["PencilHelicopter"] = false,
+		["TitanSantaCameraman"] = false,
+		["GuardianClockman"] = false,
+		["UnstableSpeakerman"] = false,
+		["MageCameraman"] = false,
+		["SpeakerLargeTVMan"] = false,
+		["TitanEggreaper"] = false,
+		["MechCameraman"] = false,
+		["RainbowFutureLargeClockman"] = false,
+		["SandWizardCameraman"] = false,
+		["AnnouncerCameraman"] = false,
+		["UpgradedTitanSpeakerman"] = false,
+		["TitanBoomboxMan"] = false,
+		["TurkeyClockman"] = false,
+		["JetpackMaceCameraman"] = false,
+		["TitanCameraman"] = false,
+		["UpgradedTitanCinemaman"] = false,
+		["Pencilman"] = false,
+		["OhioCameraman"] = false,
+		["VolcanicTitan"] = false,
+		["LargeClockman"] = false,
+		["LargeBunnyman"] = false,
+		["PotOGoldCameraman"] = false,
+		["MicrophoneMan"] = false,
+		["Drillwoman"] = false,
+		["ChariotCameraman"] = false,
+		["DualBatSpeakerman"] = false,
+		["TitanClockMan"] = false,
+		["EternalClockTitan"] = false,
+		["HunterAstroMutant"] = false,
+		["VolleyballSpeakerman"] = false,
+		["LargeCameraman"] = false,
+		["ShellSpeakerman"] = false,
+		["TitanGlacierTVMan"] = false,
+		["TitanCenturionSpeakerman"] = false,
+		["Backman"] = false,
+		["TitanAngelicCameraman"] = false,
+		["CameraHenchman"] = false,
+		["SinisterCameraman"] = false,
+		["TitanWarlordClockman"] = false,
+		["TitanForcefieldMan"] = false,
+		["MysticalCamerawoman"] = false,
+		["MedicCameraman"] = false,
+		["POVCameraman"] = false,
+		["CameraSpider"] = false,
+		["SamuraiSpeakerman"] = false,
+		["UpgradedMafiaToilet"] = false,
+		["TungTung"] = false,
+		["Lucky3DPrinterman"] = false,
+		["TorchTVMan"] = false,
+		["ElfCamerawoman"] = false,
+		["ToiletMan"] = false,
+		["TitanSamuraiSpeakerwoman"] = false,
+		["MobBossToilet"] = false,
+		["BurgalarTVMan"] = false,
+		["LuckySpeakerman"] = false,
+		["TheGoldenSkibidi"] = false,
+		["LaserGunCameraman"] = false,
+		["SergeantDrillman"] = false,
+		["ScientistClockman"] = false,
+		["UpgradedTitanDrilldragon"] = false,
+		["AmplifierMicrophoneMan"] = false,
+		["HammerPencilman"] = false,
+		["TitanBasketman"] = false,
+		["ShieldMicrophoneMan"] = false,
+		["LargeTVMan"] = false,
+		["ChefTVMan"] = false,
+		["UpgradedCameraSpider"] = false,
+		["LargeSpeakerman"] = false,
+		["TitanParadoxDrillman"] = false,
+		["GlitchedTVMan"] = false,
+		["BossToiletUnit"] = false,
+		["ReindeerSpeakerman"] = false,
+		["TitanCinemaman"] = false,
+		["FlamethrowerToiletUnit"] = false,
+		["TitanLuckbringerDrillman"] = false,
+		["LargeDrillman"] = false,
+		["TitanSpeakerman"] = false,
+		["ForcefieldSpeakerman"] = false,
+		["BatSpeakerman"] = false,
+		["HyperUpgradedTitanSpeakerman"] = false,
+		["Clockwoman"] = false,
+		["TeddyBearSpeakerman"] = false,
+		["VIPCameraman"] = false,
+		["QuantumCameraman"] = false,
+		["SecretAgent"] = false,
+		["ChillClockGuy"] = false,
+		["StreamerCameraman"] = false,
+		["TurkeyTVMan"] = false,
+		["NukeTVMan"] = false,
+		["MaceCamerawoman"] = false,
+		["KnifeUpgradedTitanSpeakerman"] = false,
+		["MechBunnyTitan"] = false,
+		["DarkDrillman"] = false,
+		["GalaxyTungTung"] = false,
+		["TitanSigmaMan"] = false,
+		["GhostCameraman"] = false,
+		["UpgradedScientistClockman"] = false,
+		["TitanChimneyMan"] = false,
+		["EasterSpeakerman"] = false,
+		["CameraDropship"] = false,
+		["ShotgunCameraman"] = false,
+		["HotDogSpeakerman"] = false,
+		["OctopusTVMan"] = false,
+		["MinigunCamerawoman"] = false,
+		["SolarFlareTVMan"] = false,
+		["KatanaSpeakerwoman"] = false,
+		["TrapMan"] = false,
+		["Telanthric"] = false,
+		["CageScientistClockman"] = false,
+		["CameramanCommander"] = false,
+		["GlitchCameraman"] = false,
+		["ToyClockman"] = false,
+		["ClassicCameraman"] = false,
+		["SpeakerShip"] = false,
+		["CandyLauncherSpeakerman"] = false,
+		["TrickorTreatCameraman"] = false,
+		["TitanDoomspeaker"] = false,
+		["Chair"] = false,
+		["CorruptedTitanClockMan"] = false,
+		["AstroUpgradedTitanCameraman"] = false,
+		["EasterFactory"] = false,
+		["ToiletUnit"] = false,
+		["TVMan"] = false,
+		["GoldenTitanSpeakerman"] = false,
+		["DancingSpeakerwoman"] = false,
+		["PencilMech"] = false,
+		["AstroLargeTVMan"] = false,
+		["ChickenstormDrillman"] = false,
+		["BunnyRiderSpeakerman"] = false,
+		["VeryImportantTitan"] = false,
+		["iamEvan"] = false,
+		["TurkeyCameraman"] = false,
+		["FutureLargeClockman"] = false,
+		["LargeForcefieldCameraman"] = false,
+		["PrinterMan"] = false,
+		["ChiefClockman"] = false,
+		["TitanFastArmoredCameraman"] = false,
+		["SkeletonCameraman"] = false,
+		["HeadlessTVMan"] = false,
+		["CameraDrone"] = false,
+		["SaberMutantToilet"] = false,
+		["ClockClockman"] = false,
+		["ShadowTVMan"] = false,
+		["BrrBrrPatapim"] = false,
+		["ScientistTVMan"] = false,
+		["MafiaBossCameraman"] = false,
+		["SpeakerDrillPencilClockTVCameraman"] = false,
+		["TitanMicrophoneMan"] = false,
+		["TelanthricTitan"] = false
+	},
+	["AutoJoinEndless"] = false,
+	["PlayMacro"] = true,
+	["AutoBuyCrate"] = false,
+	["AutoExecute"] = false,
+	["BoostFPS"] = true,
+	["AutoMail"] = false,
+	["AutoUseBoost"] = false,
+	["AutoJoinPVP"] = false,
+	["IgnoreMacroTiming"] = true,
+	["DelayJoin"] = 5,
+	["AutoReturnToLobby"] = false,
+	["AutoClaimDailyReward"] = true,
+	["SellWave"] = 1,
+	["SelectCrate"] = {
+		["StPatricksDay2024Crate"] = false,
+		["UltraTurkeyCrate"] = false,
+		["FoodCrate"] = false,
+		["MicrophoneCrate"] = false,
+		["GoldenGladiatorCrate"] = false,
+		["ExclusiveSpiderCrate"] = false,
+		["FreakyClockCrate"] = false,
+		["ExclusiveScientistCrate"] = false,
+		["ChristmasCrate"] = false,
+		["ValentinesDay2025Crate"] = false,
+		["July4thCrate"] = false,
+		["SantaCrate"] = false,
+		["UltraDrillCrate"] = false,
+		["LagoonCrate"] = false,
+		["VIPCrate"] = false,
+		["FutureCrate"] = false,
+		["OGCameraCrate"] = false,
+		["DrillSupportCrate"] = false,
+		["PrinterCrate"] = false,
+		["ScaryCrate"] = false,
+		["InfectedCrate"] = false,
+		["InjuredTitanCrate"] = false,
+		["GladiatorCrate"] = false,
+		["HauntedCrate"] = false,
+		["LuckyCrate"] = false,
+		["MafiaCrate"] = false,
+		["TechCrate"] = false,
+		["ClockCrate"] = false,
+		["HalloweenCrate"] = false,
+		["CherryBlossomCrate"] = false,
+		["ChaoticCrate"] = false,
+		["SpeedRunCrate"] = false,
+		["ActivityCrate"] = false,
+		["BoosterCrate"] = false,
+		["EasterCrate"] = false,
+		["NewYears2023Crate"] = false,
+		["DevCrate"] = false,
+		["ItalianCrate"] = false,
+		["GadgetCrate"] = false,
+		["DefenseCrate"] = false,
+		["SigmaCrate"] = false,
+		["PineappleCrate"] = false,
+		["RaidCrate"] = false,
+		["PencilCrate"] = false,
+		["ThankYouCrate"] = false,
+		["TurkeyCrate"] = false,
+		["ValentinesDay2024Crate"] = false,
+		["Easter2024Crate"] = false,
+		["ForcefieldCrate"] = false,
+		["FanCrate"] = false,
+		["RNGCrate"] = false,
+		["OctopusCrate"] = false,
+		["SamuraiCrate"] = false
+	},
+	["AutoReplay"] = true,
+	["AutoClaimEventPass"] = true,
+	["UseAll"] = false,
+	["AutoOpenCrate"] = false,
+	["ALFS_HopServer"] = false,
+	["AutoRejoin"] = false,
+	["RequiredGem"] = 1000,
+	["AutoSellOW"] = false,
+	["WalkAround"] = true,
+	["AutoSummonTroop"] = false,
+	["AutoClaimVIP"] = false,
+	["RequireRoll"] = 0,
+	["AutoListForSale"] = false,
+	["AutoVoteDifficulty"] = false,
+	["AutoClaimEventQuest"] = true,
+	["DeleteMap"] = true,
+	["WebhookURL"] = "https://discord.com/api/webhooks/1341021611888869397/6MRLqS2sJ8h4DGzu6gOYLCw6k_pH5e7wrxQcz9T0Bpa6BDfK70SCgsRhUFgeqRchFsBj",
+	["SummonDelay"] = 0.3,
+	["SelectMap"] = "Raids_Desert",
+	["AutoClaimPlaytimeReward"] = true,
+	["GiftCrate"] = false,
+	["UseBoosts"] = {
+		["2xDrillXPBoost"] = false,
+		["2xHeartsBoost2025"] = false,
+		["2xLuckBoost_10"] = false,
+		["2xHalloweenCandyBoost_1"] = false,
+		["2xTechXPBoost"] = false,
+		["2xFlowersBoost2025"] = false,
+		["2xXPBoost"] = false,
+		["2xClocksBoost"] = false,
+		["2xTurkeysBoost"] = false,
+		["2xXPBoost_10"] = false,
+		["2xCoinsBoost_10"] = false,
+		["2xXPBoost_Easter2024"] = false,
+		["Weekend_2xCoinsBoost"] = false,
+		["2xEventXPBoost_10"] = false,
+		["2xDrillBoost"] = false,
+		["2xXPBoost_1"] = false,
+		["2xCoinsBoost"] = false,
+		["2xBatteryBoost_10"] = false,
+		["2xCandyCaneBoost"] = false,
+		["2xEggsBoost"] = false,
+		["2xEventXPBoost"] = false,
+		["2xOGCoinBoost2025"] = false,
+		["2xCoinsBoost_1"] = false,
+		["2xHalloweenEventXPBoost"] = false,
+		["2xHalloweenCandyBoost_10"] = false,
+		["2xBatteryBoost_1"] = false,
+		["2xEventXPBoost_1"] = false,
+		["2xEasterBoost2025"] = false,
+		["2xCloversBoost"] = false,
+		["2xLuckBoost_1"] = false,
+		["Weekend_2xEndlessXPBoost"] = false,
+		["2xDiceBoost"] = false,
+		["2xBatteryBoost"] = false,
+		["ReplenishRaids"] = false,
+		["2xLuckBoost"] = false,
+		["2xHalloweenCandyBoost"] = false
+	},
+	["AutoDeleteTroop"] = false
 }
-
-local presetButtons = {}
-local i = 0
-for name, coords in pairs(presets) do
-    local PresetButton = Instance.new("TextButton")
-    PresetButton.Size = UDim2.new(0.9, 0, 0, 30)
-    PresetButton.Position = UDim2.new(0.05, 0, 0, 35 + (i * 35))
-    PresetButton.BackgroundColor3 = Color3.fromRGB(0, 100, 170)
-    PresetButton.TextColor3 = Color3.fromRGB(255, 255, 255)
-    PresetButton.Font = Enum.Font.SourceSansBold
-    PresetButton.Text = name
-    PresetButton.TextSize = 16
-    PresetButton.Parent = PresetFrame
-    
-    -- Thiết lập sự kiện click cho nút này
-    PresetButton.MouseButton1Click:Connect(function()
-        inputFields[1].Text = tostring(coords.X)
-        inputFields[2].Text = tostring(coords.Y)
-        inputFields[3].Text = tostring(coords.Z)
-        
-        flyToPosition(coords)
-    end)
-    
-    i = i + 1
-end
-
--- Thiết lập sự kiện click cho các nút
-FlyButton.MouseButton1Click:Connect(function()
-    local x = tonumber(inputFields[1].Text) or 0
-    local y = tonumber(inputFields[2].Text) or 0
-    local z = tonumber(inputFields[3].Text) or 0
-    
-    local targetPos = Vector3.new(x, y, z)
-    flyToPosition(targetPos)
-end)
-
-StopButton.MouseButton1Click:Connect(stopFlying)
-
--- Làm cho giao diện có thể kéo thả
-local UserInputService = game:GetService("UserInputService")
-local dragging
-local dragInput
-local dragStart
-local startPos
-
-local function updateDrag(input)
-    local delta = input.Position - dragStart
-    Frame.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
-    PresetFrame.Position = UDim2.new(Frame.Position.X.Scale, Frame.Position.X.Offset, Frame.Position.Y.Scale, Frame.Position.Y.Offset + 155)
-end
-
-Frame.InputBegan:Connect(function(input)
-    if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
-        dragging = true
-        dragStart = input.Position
-        startPos = Frame.Position
-        
-        input.Changed:Connect(function()
-            if input.UserInputState == Enum.UserInputState.End then
-                dragging = false
-            end
-        end)
-    end
-end)
-
-Frame.InputChanged:Connect(function(input)
-    if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then
-        dragInput = input
-    end
-end)
-
-UserInputService.InputChanged:Connect(function(input)
-    if input == dragInput and dragging then
-        updateDrag(input)
-    end
-end)
-
--- Xử lý khi nhân vật hồi sinh
-LocalPlayer.CharacterAdded:Connect(function(newCharacter)
-    Character = newCharacter
-    HumanoidRootPart = Character:WaitForChild("HumanoidRootPart")
-    
-    -- Nếu chúng ta đang bay trước đó, tiếp tục bay đến cùng một vị trí
-    if isFlying and targetPosition then
-        local savedPosition = targetPosition
-        stopFlying()
-        -- Đợi một thời gian ngắn để nhân vật ổn định
-        task.wait(0.5)
-        flyToPosition(savedPosition)
-    end
-end)
-
--- Thông điệp hướng dẫn
-local function showInstructions()
-    print("=== Hướng Dẫn Công Cụ Bay Tự Động ===")
-    print("1. Nhập tọa độ X, Y, Z hoặc sử dụng các nút vị trí đã lưu")
-    print("2. Nhấp 'BAY' để tự động bay đến vị trí đó")
-    print("3. Nhấp 'DỪNG' để hủy bay")
-    print("4. Các vị trí đã lưu sẵn có sẵn để di chuyển nhanh")
-    print("================================")
-end
-
-showInstructions()
+getgenv().Key = "LKABQjUuNLdBEPnkrawwFDKaGQoGdgHb"
+loadstring(game:HttpGet("https://nousigi.com/loader.lua"))()
